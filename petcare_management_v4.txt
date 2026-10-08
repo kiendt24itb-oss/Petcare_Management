@@ -1,0 +1,952 @@
+CREATE DATABASE IF NOT EXISTS petcare_management
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+USE petcare_management;
+
+-- =============================================================================
+-- 01. ACCOUNTS
+-- Bảng lưu thông tin tài khoản đăng nhập
+-- =============================================================================
+CREATE TABLE accounts (
+
+    account_id      INT PRIMARY KEY AUTO_INCREMENT,                  -- Mã tài khoản
+    username        VARCHAR(100) NOT NULL UNIQUE,                    -- Tên đăng nhập
+    email           VARCHAR(255) NOT NULL UNIQUE,                    -- Email
+    password        VARCHAR(255) NOT NULL,                           -- Mật khẩu đã mã hóa
+    role            ENUM('ADMIN', 'STAFF', 'CUSTOMER')
+                    NOT NULL DEFAULT 'CUSTOMER',                     -- Vai trò
+    status          ENUM('ACTIVE', 'LOCKED')
+                    NOT NULL DEFAULT 'ACTIVE',                       -- Trạng thái
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP               -- Ngày tạo
+
+);
+
+
+-- =============================================================================
+-- 02. CUSTOMERS
+-- Bảng lưu thông tin khách hàng
+-- =============================================================================
+CREATE TABLE customers (
+
+    customer_id         INT PRIMARY KEY AUTO_INCREMENT,              -- Mã khách hàng
+    customer_code       VARCHAR(10) NOT NULL UNIQUE,                 -- Mã khách hàng
+    account_id          INT NOT NULL UNIQUE,                         -- Tài khoản
+    full_name           VARCHAR(250) NOT NULL,                       -- Họ và tên
+    age                 INT,                                         -- Tuổi
+    gender              ENUM('MALE', 'FEMALE', 'OTHER'),             -- Giới tính
+    email               VARCHAR(250),                                -- Email liên hệ
+    phone               VARCHAR(15),                                 -- Số điện thoại
+    address             VARCHAR(500),                                -- Địa chỉ
+    avatar              VARCHAR(500),                                -- Ảnh đại diện
+    violation_count     INT DEFAULT 0,                               -- Số lần vi phạm
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,          -- Ngày tạo
+
+    CONSTRAINT fk_customer_account
+        FOREIGN KEY (account_id)
+        REFERENCES accounts(account_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 03. PETS
+-- Bảng lưu thông tin thú cưng
+-- =============================================================================
+CREATE TABLE pets (
+
+    pet_id              INT PRIMARY KEY AUTO_INCREMENT,              -- Mã thú cưng
+    pet_code            VARCHAR(10) NOT NULL UNIQUE,                 -- Mã thú cưng
+    customer_id         INT NOT NULL,                                -- Chủ sở hữu
+    pet_name            VARCHAR(250) NOT NULL,                       -- Tên thú cưng
+    species             VARCHAR(100),                                -- Loài
+    breed               VARCHAR(100),                                -- Giống
+    age                 INT,                                         -- Tuổi
+    weight              DOUBLE,                                      -- Cân nặng (kg)
+    gender              ENUM('MALE', 'FEMALE'),                      -- Giới tính
+    avatar              VARCHAR(500),                                -- Ảnh đại diện
+    health_note         TEXT,                                        -- Ghi chú sức khỏe
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,          -- Ngày tạo
+
+    CONSTRAINT fk_pet_customer
+        FOREIGN KEY (customer_id)
+        REFERENCES customers(customer_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 04. POSITIONS
+-- Bảng lưu danh mục chức vụ
+-- =============================================================================
+CREATE TABLE positions (
+
+    position_id         INT PRIMARY KEY AUTO_INCREMENT,              -- Mã chức vụ
+    position_code       VARCHAR(20) NOT NULL UNIQUE,                 -- Mã chức vụ
+    position_name       VARCHAR(100) NOT NULL,                       -- Tên chức vụ
+    description         TEXT,                                        -- Mô tả
+    allowance           DECIMAL(10,2) NOT NULL DEFAULT 0.00,         -- Phụ cấp theo chức vụ
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,          -- Ngày tạo
+    updated_at          DATETIME DEFAULT CURRENT_TIMESTAMP
+                        ON UPDATE CURRENT_TIMESTAMP                  -- Ngày cập nhật
+
+);
+
+
+-- =============================================================================
+-- 05. STAFFS
+-- Bảng lưu thông tin nhân viên
+-- =============================================================================
+CREATE TABLE staffs (
+
+    staff_id                INT PRIMARY KEY AUTO_INCREMENT,          -- Mã nhân viên
+    staff_code              VARCHAR(10) NOT NULL UNIQUE,             -- Mã nhân viên
+    account_id              INT UNIQUE NULL,                         -- Tài khoản
+    position_id             INT,                                     -- Chức vụ
+    full_name               VARCHAR(250) NOT NULL,                   -- Họ và tên
+    email                   VARCHAR(250),                            -- Email liên hệ
+    phone                   VARCHAR(15),                             -- Số điện thoại
+    citizen_id              VARCHAR(20),                             -- CMND/CCCD
+    address                 VARCHAR(500),                            -- Địa chỉ
+    avatar                  VARCHAR(500),                            -- Ảnh đại diện
+    salary_per_shift        DECIMAL(10,2) NOT NULL DEFAULT 0.00,     -- Mức lương theo một ca làm việc
+    is_working              BOOLEAN NOT NULL DEFAULT TRUE,           -- Trạng thái làm việc
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,      -- Ngày tạo
+    updated_at              DATETIME DEFAULT CURRENT_TIMESTAMP
+                        ON UPDATE CURRENT_TIMESTAMP,                 -- Ngày cập nhật
+
+    CONSTRAINT fk_staff_account
+        FOREIGN KEY (account_id)
+        REFERENCES accounts(account_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_staff_position
+        FOREIGN KEY (position_id)
+        REFERENCES positions(position_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 06. WORK_SHIFTS
+-- Bảng lưu danh mục ca làm việc
+-- =============================================================================
+CREATE TABLE work_shifts (
+
+    shift_id        INT PRIMARY KEY AUTO_INCREMENT,                  -- Mã ca làm
+    shift_name      VARCHAR(50) NOT NULL,                            -- Tên ca làm
+    start_time      TIME NOT NULL,                                   -- Giờ bắt đầu
+    end_time        TIME NOT NULL,                                   -- Giờ kết thúc
+    is_active       BOOLEAN NOT NULL DEFAULT TRUE,                   -- Trạng thái kích hoạt ca làm
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,              -- Ngày tạo
+    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+                    ON UPDATE CURRENT_TIMESTAMP                      -- Ngày cập nhật
+
+);
+
+
+-- =============================================================================
+-- 07. SERVICE_CATEGORIES
+-- Bảng lưu danh mục nhóm dịch vụ (TẦNG 1: HEALTH, SPA, HOTEL...)
+-- =============================================================================
+CREATE TABLE service_categories (
+
+    category_id     INT PRIMARY KEY AUTO_INCREMENT,                  -- Mã nhóm dịch vụ
+    category_code   VARCHAR(20) NOT NULL UNIQUE,                     -- Mã code nhóm dịch vụ (VD: HEALTH, SPA, HOTEL)
+    category_name   VARCHAR(100) NOT NULL,                           -- Tên nhóm dịch vụ
+    description     TEXT,                                            -- Mô tả
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP               -- Ngày tạo
+
+);
+
+
+-- =============================================================================
+-- 08. ROOM_TYPES
+-- Bảng lưu danh mục loại phòng dịch vụ (TẦNG 2: Bổ sung type_code)
+-- =============================================================================
+CREATE TABLE room_types (
+
+    room_type_id    INT PRIMARY KEY AUTO_INCREMENT,                  -- Mã loại phòng
+    type_code       VARCHAR(20) NOT NULL UNIQUE,                     -- BỔ SUNG: Mã code loại phòng (VD: RT_EXAM, RT_SURGERY, RT_SPA)
+    category_id     INT NOT NULL,                                    -- Nhóm dịch vụ liên quan (Liên kết Tầng 1)
+    type_name       VARCHAR(100) NOT NULL,                           -- Tên loại phòng (Ví dụ: Phòng khám, Phòng phẫu thuật, Phòng VIP...)
+    description     TEXT,                                            -- Mô tả
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,              -- Ngày tạo
+
+    CONSTRAINT fk_roomtype_category
+        FOREIGN KEY (category_id)
+        REFERENCES service_categories(category_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 09. ROOMS
+-- Bảng lưu thông tin các phòng dịch vụ thực tế
+-- =============================================================================
+CREATE TABLE rooms (
+
+    room_id         INT PRIMARY KEY AUTO_INCREMENT,                  -- Mã phòng
+    room_code       VARCHAR(20) NOT NULL UNIQUE,                     -- Mã phòng (VD: R_EXAM_01, R_SURGERY_02)
+    room_name       VARCHAR(100) NOT NULL UNIQUE,                    -- Tên phòng (Ví dụ: Phòng Khám 01, Phòng Phẫu Thuật 02...)
+    room_type_id    INT NOT NULL,                                    -- Mã loại phòng
+    capacity        INT NOT NULL DEFAULT 1,                          -- Sức chứa tối đa
+    status          ENUM('AVAILABLE', 'OCCUPIED', 'MAINTENANCE', 'ASSIGNED')
+                    NOT NULL DEFAULT 'AVAILABLE',                    -- Trạng thái phòng
+    note            TEXT,                                            -- Ghi chú trang thiết bị/đặc điểm
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,              -- Ngày tạo
+    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+                    ON UPDATE CURRENT_TIMESTAMP,                     -- Ngày cập nhật
+
+    CONSTRAINT fk_room_type
+        FOREIGN KEY (room_type_id)
+        REFERENCES room_types(room_type_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 10. SERVICES
+-- Bảng lưu danh mục dịch vụ
+-- =============================================================================
+CREATE TABLE services (
+
+    service_id            INT PRIMARY KEY AUTO_INCREMENT,            -- Mã dịch vụ
+    category_id           INT NOT NULL,                              -- Mã nhóm dịch vụ (HEALTH, SPA, HOTEL...)
+    service_code          VARCHAR(20) NOT NULL UNIQUE,		     -- Mã code dịch vụ
+    required_room_type_id INT NULL,                                  -- Loại phòng yêu cầu (Dùng cho HEALTH & SPA tự động xếp phòng)
+    assigned_room_id      INT NULL,                                  -- BỔ SUNG: Phòng gán cố định (Dành riêng cho dịch vụ HOTEL)
+    service_name          VARCHAR(250) NOT NULL,                     -- Tên dịch vụ
+    description           TEXT,                                      -- Mô tả
+    duration              INT NOT NULL,                              -- Thời lượng dự kiến (phút)
+    price                 DECIMAL(10,2) NOT NULL,                    -- Giá dịch vụ
+    image_url             VARCHAR(500),                              -- Ảnh minh họa
+    status                ENUM('ACTIVE', 'INACTIVE')
+                          NOT NULL DEFAULT 'ACTIVE',                 -- Trạng thái dịch vụ
+    created_at            DATETIME DEFAULT CURRENT_TIMESTAMP,        -- Ngày tạo
+    updated_at            DATETIME DEFAULT CURRENT_TIMESTAMP
+                          ON UPDATE CURRENT_TIMESTAMP,               -- Ngày cập nhật
+
+    CONSTRAINT fk_service_category
+        FOREIGN KEY (category_id)
+        REFERENCES service_categories(category_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_service_roomtype
+        FOREIGN KEY (required_room_type_id)
+        REFERENCES room_types(room_type_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_service_assigned_room
+        FOREIGN KEY (assigned_room_id)
+        REFERENCES rooms(room_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 11. BOOKINGS
+-- Bảng lưu thông tin đơn đặt lịch dịch vụ
+-- =============================================================================
+CREATE TABLE bookings (
+
+    booking_id          INT PRIMARY KEY AUTO_INCREMENT,               -- Mã đơn đặt lịch
+    booking_code        VARCHAR(10) NOT NULL UNIQUE,                  -- Mã đơn
+    customer_id         INT NOT NULL,                                 -- Khách hàng
+    total_price         DECIMAL(10,2) NOT NULL DEFAULT 0.00,          -- Tổng tiền dự kiến
+    estimated_start_time DATETIME NOT NULL,                           -- Thời gian bắt đầu dự kiến
+    estimated_end_time   DATETIME NOT NULL,                           -- Thời gian kết thúc dự kiến
+    actual_start_time   DATETIME,                                     -- Thời gian bắt đầu thực tế
+    actual_end_time     DATETIME,                                     -- Thời gian kết thúc thực tế
+    status              ENUM(
+                            'PENDING',
+                            'CONFIRMED',
+                            'CHECKED_IN',
+                            'PROCESSING',
+                            'COMPLETED',
+                            'CANCELLED',
+                            'NO_SHOW'
+                        ) NOT NULL DEFAULT 'PENDING',                 -- Trạng thái đơn
+    note                TEXT,                                         -- Ghi chú
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Ngày tạo
+    updated_at          DATETIME DEFAULT CURRENT_TIMESTAMP
+                        ON UPDATE CURRENT_TIMESTAMP,                  -- Ngày cập nhật
+
+    CONSTRAINT fk_booking_customer
+        FOREIGN KEY (customer_id)
+        REFERENCES customers(customer_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 12. BOOKING_DETAILS
+-- Bảng lưu chi tiết đơn đặt lịch
+-- =============================================================================
+CREATE TABLE booking_details (
+
+    detail_id           INT PRIMARY KEY AUTO_INCREMENT,               -- Mã chi tiết
+    booking_id          INT NOT NULL,                                 -- Đơn đặt lịch
+    pet_id              INT NOT NULL,                                 -- Thú cưng
+    service_id          INT NOT NULL,                                 -- Dịch vụ
+    staff_id            INT,                                          -- Nhân viên phụ trách
+    room_id             INT,                                          -- Phòng thực hiện
+    unit_price          DECIMAL(10,2) NOT NULL,                       -- Đơn giá tại thời điểm đặt
+    assignment_type     VARCHAR(10) DEFAULT 'SYSTEM',                 -- Nguồn gốc phân công ('CUSTOMER', 'SYSTEM', 'ADMIN')
+    assigned_at         DATETIME,                                     -- Thời điểm phân công nhân viên
+
+    CONSTRAINT fk_bookingdetail_booking
+        FOREIGN KEY (booking_id)
+        REFERENCES bookings(booking_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_bookingdetail_pet
+        FOREIGN KEY (pet_id)
+        REFERENCES pets(pet_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_bookingdetail_service
+        FOREIGN KEY (service_id)
+        REFERENCES services(service_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_bookingdetail_staff
+        FOREIGN KEY (staff_id)
+        REFERENCES staffs(staff_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_bookingdetail_room
+        FOREIGN KEY (room_id)
+        REFERENCES rooms(room_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 13. BOOKING_LOGS
+-- Bảng lưu lịch sử xử lý đơn đặt lịch
+-- =============================================================================
+CREATE TABLE booking_logs (
+
+    log_id              INT PRIMARY KEY AUTO_INCREMENT,               -- Mã nhật ký
+    booking_id          INT NOT NULL,                                 -- Đơn đặt lịch
+    content             TEXT NOT NULL,                                -- Nội dung
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Ngày tạo
+
+    CONSTRAINT fk_bookinglog_booking
+        FOREIGN KEY (booking_id)
+        REFERENCES bookings(booking_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 14. PRODUCT_CATEGORIES
+-- Bảng lưu danh mục loại sản phẩm
+-- =============================================================================
+CREATE TABLE product_categories (
+
+    category_id         INT PRIMARY KEY AUTO_INCREMENT,               -- Mã loại sản phẩm
+    category_name       VARCHAR(100) NOT NULL UNIQUE,                 -- Tên loại sản phẩm
+    description         TEXT,                                         -- Mô tả
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP            -- Ngày tạo
+
+);
+
+
+-- =============================================================================
+-- 15. PRODUCTS
+-- Bảng lưu thông tin sản phẩm
+-- =============================================================================
+CREATE TABLE products (
+
+    product_id          INT PRIMARY KEY AUTO_INCREMENT,               -- Mã ID tự tăng
+    category_id         INT NOT NULL,                                 -- Danh mục sản phẩm
+    product_code        VARCHAR(20) NOT NULL UNIQUE,                  -- Mã sản phẩm 
+    product_name        VARCHAR(250) NOT NULL,                        -- Tên sản phẩm
+    brand               VARCHAR(100),                                 -- Thương hiệu / Nhà sản xuất
+    description         TEXT,                                         -- Mô tả sản phẩm
+    image_url           VARCHAR(500),                                 -- Ảnh sản phẩm
+    cost_price          DECIMAL(12,2) NOT NULL DEFAULT 0.00,  	      -- BỔ SUNG: Giá nhập / Giá vốn
+    sale_price          DECIMAL(10,2) NOT NULL,                       -- Giá bán
+    stock_quantity      INT NOT NULL DEFAULT 0,                       -- Số lượng tồn kho hiện tại
+    min_stock_quantity  INT NOT NULL DEFAULT 5,                       -- Ngưỡng cảnh báo tồn tối thiểu
+    unit                VARCHAR(50) NOT NULL DEFAULT 'PIECE', 	      -- Linh hoạt đơn vị tính
+    status              ENUM('ACTIVE', 'INACTIVE')
+                        NOT NULL DEFAULT 'ACTIVE',                    -- Trạng thái kinh doanh sản phẩm
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Ngày tạo
+    updated_at          DATETIME DEFAULT CURRENT_TIMESTAMP
+                        ON UPDATE CURRENT_TIMESTAMP,                  -- Ngày cập nhật
+
+    CONSTRAINT fk_product_category
+        FOREIGN KEY (category_id)
+        REFERENCES product_categories(category_id)
+        ON DELETE RESTRICT                                    	      -- CHỐNG XÓA: Không cho xóa danh mục khi còn sản phẩm
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 16. INVENTORY_TRANSACTIONS
+-- Bảng lưu lịch sử biến động kho hàng
+-- =============================================================================
+CREATE TABLE inventory_transactions (
+
+    transaction_id      INT PRIMARY KEY AUTO_INCREMENT,               -- Mã giao dịch kho
+    product_id          INT NOT NULL,                                 -- Sản phẩm
+    staff_id            INT,                                          -- Nhân viên thực hiện
+    transaction_type    ENUM('IMPORT', 'SALE', 'ADJUST')
+                        NOT NULL,                                     -- Loại biến động kho
+    quantity            INT NOT NULL,                                 -- Số lượng biến động (+/-)
+    unit_cost           DECIMAL(12,2) DEFAULT NULL,                   -- BỔ SUNG: Giá nhập thực tế tại thời điểm giao dịch
+    note                TEXT,                                         -- Ghi chú
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Ngày tạo
+
+    CONSTRAINT fk_invtrans_product
+        FOREIGN KEY (product_id)
+        REFERENCES products(product_id)
+        ON DELETE RESTRICT                                    -- SỬA LỖI: Giữ nguyên lịch sử kho, chống xóa nhầm sản phẩm
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_invtrans_staff
+        FOREIGN KEY (staff_id)
+        REFERENCES staffs(staff_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 17. INVOICES
+-- Bảng lưu hóa đơn thanh toán
+-- =============================================================================
+CREATE TABLE invoices (
+
+    invoice_id          INT PRIMARY KEY AUTO_INCREMENT,               -- Mã hóa đơn
+    invoice_code        VARCHAR(20) NOT NULL UNIQUE,                  -- Mã số hóa đơn
+    customer_id         INT NOT NULL,                                 -- Khách hàng
+    staff_id            INT,                                          -- Nhân viên tạo hóa đơn
+    total_amount        DECIMAL(12,2) NOT NULL DEFAULT 0.00,          -- Tổng tiền hóa đơn
+    discount_amount     DECIMAL(10,2) NOT NULL DEFAULT 0.00,          -- Giảm giá
+    final_amount        DECIMAL(12,2) NOT NULL DEFAULT 0.00,          -- Tổng tiền thanh toán
+    status              ENUM('UNPAID', 'PAID', 'CANCELLED')
+                        NOT NULL DEFAULT 'UNPAID',                    -- Trạng thái hóa đơn
+    note                TEXT,                                         -- Ghi chú
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Ngày tạo
+    updated_at          DATETIME DEFAULT CURRENT_TIMESTAMP
+                        ON UPDATE CURRENT_TIMESTAMP,                  -- Ngày cập nhật
+
+    CONSTRAINT fk_invoice_customer
+        FOREIGN KEY (customer_id)
+        REFERENCES customers(customer_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_invoice_staff
+        FOREIGN KEY (staff_id)
+        REFERENCES staffs(staff_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 18. INVOICE_ITEMS
+-- Bảng lưu chi tiết các mục trong hóa đơn
+-- =============================================================================
+CREATE TABLE invoice_items (
+
+    item_id             INT PRIMARY KEY AUTO_INCREMENT,               -- Mã chi tiết hóa đơn
+    invoice_id          INT NOT NULL,                                 -- Hóa đơn
+    item_type           ENUM('BOOKING', 'PRODUCT') NOT NULL,          -- Loại hạng mục
+    product_id          INT DEFAULT NULL,                             -- THAM CHIẾU MỚI: Khóa ngoại trực tiếp tới products
+    booking_id          INT DEFAULT NULL,                             -- THAM CHIẾU MỚI: Khóa ngoại trực tiếp tới bookings
+    quantity            INT NOT NULL DEFAULT 1,                       -- Số lượng
+    unit_price          DECIMAL(12,2) NOT NULL,                       -- Đơn giá bán tại thời điểm lập HĐ
+    unit_cost           DECIMAL(12,2) NOT NULL DEFAULT 0.00,          -- BỔ SUNG: Giá vốn tại thời điểm bán (để tính lãi)
+    subtotal            DECIMAL(15,2) NOT NULL,                       -- Thành tiền
+
+    CONSTRAINT fk_invitem_invoice
+        FOREIGN KEY (invoice_id)
+        REFERENCES invoices(invoice_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_invitem_product
+        FOREIGN KEY (product_id)
+        REFERENCES products(product_id)
+        ON DELETE RESTRICT                                    -- SỬA LỖI: Ngăn xóa sản phẩm đã xuất trên hóa đơn
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_invitem_booking
+        FOREIGN KEY (booking_id)
+        REFERENCES bookings(booking_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 19. PAYMENT_METHODS
+-- Bảng lưu danh mục phương thức thanh toán
+-- =============================================================================
+CREATE TABLE payment_methods (
+
+    method_id           INT PRIMARY KEY AUTO_INCREMENT,               -- Mã phương thức
+    method_code         VARCHAR(50) NOT NULL UNIQUE,                  -- Mã code phương thức
+    method_name         VARCHAR(100) NOT NULL,                        -- Tên phương thức
+    is_active           BOOLEAN NOT NULL DEFAULT TRUE,                -- Trạng thái kích hoạt
+    description         TEXT                                          -- Mô tả
+
+);
+
+
+-- =============================================================================
+-- 20. PAYMENTS
+-- Bảng lưu giao dịch thanh toán hóa đơn
+-- =============================================================================
+CREATE TABLE payments (
+
+    payment_id          INT PRIMARY KEY AUTO_INCREMENT,               -- Mã giao dịch thanh toán
+    invoice_id          INT NOT NULL,                                 -- Hóa đơn
+    method_id           INT NOT NULL,                                 -- Phương thức thanh toán
+    amount              DECIMAL(12,2) NOT NULL,                       -- Số tiền thanh toán
+    transaction_code    VARCHAR(100) UNIQUE NULL,                     -- Mã giao dịch cổng thanh toán
+    status              ENUM('PENDING', 'PAID', 'FAILED', 'REFUNDED')
+                        NOT NULL DEFAULT 'PENDING',                   -- Trạng thái thanh toán
+    paid_at             DATETIME,                                     -- Thời gian thanh toán thành công
+    note                TEXT,                                         -- Ghi chú
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Ngày tạo
+
+    CONSTRAINT fk_payment_invoice
+        FOREIGN KEY (invoice_id)
+        REFERENCES invoices(invoice_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_payment_method
+        FOREIGN KEY (method_id)
+        REFERENCES payment_methods(method_id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 21. CHAT_ROOMS
+-- Bảng lưu thông tin phòng chat
+-- =============================================================================
+CREATE TABLE chat_rooms (
+
+    room_id             INT PRIMARY KEY AUTO_INCREMENT,               -- Mã phòng chat
+    customer_id         INT NOT NULL,                                 -- Khách hàng
+    staff_id            INT,                                          -- Nhân viên
+    chat_type           ENUM('AI', 'HUMAN')
+                        NOT NULL DEFAULT 'AI',                        -- Loại phòng chat
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Ngày tạo
+    updated_at          DATETIME DEFAULT CURRENT_TIMESTAMP
+                        ON UPDATE CURRENT_TIMESTAMP,                  -- Ngày cập nhật
+
+    CONSTRAINT fk_chatroom_customer
+        FOREIGN KEY (customer_id)
+        REFERENCES customers(customer_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_chatroom_staff
+        FOREIGN KEY (staff_id)
+        REFERENCES staffs(staff_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 22. CHAT_MESSAGES
+-- Bảng lưu nội dung tin nhắn
+-- =============================================================================
+CREATE TABLE chat_messages (
+
+    message_id          INT PRIMARY KEY AUTO_INCREMENT,               -- Mã tin nhắn
+    room_id             INT NOT NULL,                                 -- Phòng chat
+    sender_type         ENUM('CUSTOMER', 'STAFF', 'AI')
+                        NOT NULL,                                     -- Người gửi
+    sender_id           INT,                                          -- ID người gửi
+    content             TEXT NOT NULL,                                -- Nội dung
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Ngày tạo
+
+    CONSTRAINT fk_chatmessage_room
+        FOREIGN KEY (room_id)
+        REFERENCES chat_rooms(room_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 23. STAFF_SHIFT_ASSIGNMENTS (BẢNG MỚI)
+-- Bảng lưu thông tin phân ca làm việc cho nhân viên theo từng ngày
+-- =============================================================================
+CREATE TABLE staff_shift_assignments (
+
+    assignment_id       INT PRIMARY KEY AUTO_INCREMENT,               -- Mã phân ca
+    staff_id            INT NOT NULL,                                 -- Nhân viên
+    shift_id            INT NOT NULL,                                 -- Ca làm việc
+    work_date           DATE NOT NULL,                                -- Ngày làm việc
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Ngày tạo
+    updated_at          DATETIME DEFAULT CURRENT_TIMESTAMP
+                        ON UPDATE CURRENT_TIMESTAMP,                  -- Ngày cập nhật
+
+    CONSTRAINT uq_staff_shift_date
+        UNIQUE (staff_id, shift_id, work_date),
+
+    CONSTRAINT fk_assignment_staff
+        FOREIGN KEY (staff_id)
+        REFERENCES staffs(staff_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_assignment_shift
+        FOREIGN KEY (shift_id)
+        REFERENCES work_shifts(shift_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 24. TIMEKEEPINGS
+-- Bảng lưu thông tin chấm công
+-- =============================================================================
+CREATE TABLE timekeepings (
+
+    timekeeping_id      INT PRIMARY KEY AUTO_INCREMENT,               -- Mã chấm công
+    staff_id            INT NOT NULL,                                 -- Nhân viên
+    shift_id            INT NOT NULL,                                 -- Ca làm
+    work_date           DATE NOT NULL,                                -- Ngày làm
+    check_in            DATETIME,                                     -- Giờ vào ca
+    check_out           DATETIME,                                     -- Giờ kết thúc
+    check_in_method     ENUM('QR', 'CODE', 'MANUAL') NULL,            -- Phương thức check-in
+    check_out_method    ENUM('QR', 'CODE', 'MANUAL') NULL,            -- Phương thức check-out
+    working_minutes     INT DEFAULT 0,                                -- Tổng thời gian làm thực tế (phút)
+    late_minutes        INT DEFAULT 0,                                -- Số phút đi muộn
+    overtime_minutes    INT DEFAULT 0,                                -- Số phút tăng ca
+    attendance_status   ENUM('PRESENT', 'LATE', 'ABSENT', 'LEAVE')
+                        NOT NULL DEFAULT 'PRESENT',                   -- Trạng thái điểm danh
+    leave_type          ENUM('NONE', 'PAID', 'UNPAID')
+                        NOT NULL DEFAULT 'NONE',                      -- Loại xin nghỉ
+    leave_reason        TEXT,                                         -- Lý do nghỉ
+    note                TEXT,                                         -- Ghi chú
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Ngày tạo
+
+    CONSTRAINT uq_timekeeping
+        UNIQUE (staff_id, shift_id, work_date),
+
+    CONSTRAINT fk_timekeeping_staff
+        FOREIGN KEY (staff_id)
+        REFERENCES staffs(staff_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_timekeeping_shift
+        FOREIGN KEY (shift_id)
+        REFERENCES work_shifts(shift_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 25. ATTENDANCE_LOGS
+-- Bảng lưu nhật ký quét điểm danh
+-- =============================================================================
+CREATE TABLE attendance_logs (
+
+    log_id              INT PRIMARY KEY AUTO_INCREMENT,               -- Mã nhật ký điểm danh
+    staff_id            INT NOT NULL,                                 -- Nhân viên
+    shift_id            INT,                                          -- Ca làm việc liên quan
+    action_type         ENUM('CHECK_IN', 'CHECK_OUT', 'FAILED', 'WRONG_CODE', 'WRONG_SHIFT', 'QR_EXPIRED')
+                        NOT NULL,                                     -- Hành động điểm danh
+    method              ENUM('QR', 'CODE', 'MANUAL') NOT NULL,        -- Phương thức
+    note                TEXT,                                         -- Ghi chú chi tiết lỗi hoặc lý do
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Thời gian ghi nhận
+
+    CONSTRAINT fk_attlog_staff
+        FOREIGN KEY (staff_id)
+        REFERENCES staffs(staff_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_attlog_shift
+        FOREIGN KEY (shift_id)
+        REFERENCES work_shifts(shift_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 26. STAFF_REWARD_PENALTIES (BẢNG MỚI)
+-- Bảng lưu các khoản thưởng hoặc phạt thủ công do quản lý quyết định
+-- =============================================================================
+CREATE TABLE staff_reward_penalties (
+
+    record_id           INT PRIMARY KEY AUTO_INCREMENT,               -- Mã ghi nhận
+    staff_id            INT NOT NULL,                                 -- Nhân viên
+    type                ENUM('REWARD', 'PENALTY') NOT NULL,           -- Loại (Thưởng / Phạt)
+    amount              DECIMAL(10,2) NOT NULL DEFAULT 0.00,          -- Số tiền
+    reason              TEXT NOT NULL,                                -- Lý do thưởng/phạt
+    created_by          INT,                                          -- Quản lý quyết định
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Ngày tạo
+
+    CONSTRAINT fk_reward_penalty_staff
+        FOREIGN KEY (staff_id)
+        REFERENCES staffs(staff_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_reward_penalty_creator
+        FOREIGN KEY (created_by)
+        REFERENCES staffs(staff_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 27. BOOKING_STAFF_LOGS (BẢNG MỚI)
+-- Bảng lưu lịch sử thay đổi nhân viên phụ trách booking
+-- =============================================================================
+CREATE TABLE booking_staff_logs (
+
+    log_id              INT PRIMARY KEY AUTO_INCREMENT,               -- Mã nhật ký đổi nhân viên
+    detail_id           INT NOT NULL,                                 -- Chi tiết đơn đặt lịch
+    old_staff_id        INT,                                          -- Nhân viên cũ
+    new_staff_id        INT,                                          -- Nhân viên mới
+    changed_by          INT,                                          -- Người thực hiện đổi
+    reason              TEXT NOT NULL,                                -- Lý do đổi nhân viên
+    changed_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Thời gian thực hiện đổi
+
+    CONSTRAINT fk_stafflog_detail
+        FOREIGN KEY (detail_id)
+        REFERENCES booking_details(detail_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_stafflog_old_staff
+        FOREIGN KEY (old_staff_id)
+        REFERENCES staffs(staff_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_stafflog_new_staff
+        FOREIGN KEY (new_staff_id)
+        REFERENCES staffs(staff_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_stafflog_changed_by
+        FOREIGN KEY (changed_by)
+        REFERENCES staffs(staff_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 28. HOLIDAYS (BẢNG MỚI)
+-- Bảng lưu danh sách các ngày lễ và hệ số lương
+-- =============================================================================
+CREATE TABLE holidays (
+
+    holiday_id          INT PRIMARY KEY AUTO_INCREMENT,               -- Mã ngày lễ
+    holiday_name        VARCHAR(100) NOT NULL,                        -- Tên ngày lễ
+    holiday_date        DATE NOT NULL UNIQUE,                         -- Ngày lễ
+    multiplier          DECIMAL(3,2) NOT NULL DEFAULT 2.00,           -- Hệ số lương ngày lễ (ví dụ: 2.0, 3.0)
+    description         TEXT,                                         -- Mô tả
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Ngày tạo
+    updated_at          DATETIME DEFAULT CURRENT_TIMESTAMP
+                        ON UPDATE CURRENT_TIMESTAMP                   -- Ngày cập nhật
+
+);
+
+
+-- =============================================================================
+-- 29. SALARY_POLICIES (BẢNG MỚI)
+-- Bảng lưu các quy định/chính sách lương chung của công ty
+-- =============================================================================
+CREATE TABLE salary_policies (
+
+    policy_id           INT PRIMARY KEY AUTO_INCREMENT,               -- Mã chính sách
+    policy_key          VARCHAR(100) NOT NULL UNIQUE,                 -- Khóa định danh chính sách
+    policy_name         VARCHAR(250) NOT NULL,                        -- Tên quy định
+    policy_value        DECIMAL(10,2) NOT NULL,                       -- Giá trị quy định
+    description         TEXT,                                         -- Mô tả chi tiết
+    updated_at          DATETIME DEFAULT CURRENT_TIMESTAMP
+                        ON UPDATE CURRENT_TIMESTAMP                   -- Ngày cập nhật
+
+);
+
+
+-- =============================================================================
+-- 30. LATE_PENALTY_POLICIES (BẢNG MỚI)
+-- Bảng lưu cấu hình khung phạt đi muộn theo số phút
+-- =============================================================================
+CREATE TABLE late_penalty_policies (
+
+    policy_id           INT PRIMARY KEY AUTO_INCREMENT,               -- Mã khung phạt đi muộn
+    from_minute         INT NOT NULL,                                 -- Từ số phút
+    to_minute           INT,                                          -- Đến số phút (NULL nếu từ X phút trở lên)
+    penalty_amount      DECIMAL(10,2) NOT NULL DEFAULT 0.00,          -- Mức tiền phạt
+    description         TEXT,                                         -- Mô tả
+    updated_at          DATETIME DEFAULT CURRENT_TIMESTAMP
+                        ON UPDATE CURRENT_TIMESTAMP                   -- Ngày cập nhật
+
+);
+
+
+-- =============================================================================
+-- 31. SALARIES
+-- Bảng lưu thông tin bảng lương nhân viên (Snapshot lương hàng tháng)
+-- =============================================================================
+CREATE TABLE salaries (
+
+    salary_id               INT PRIMARY KEY AUTO_INCREMENT,           -- Mã bảng lương
+    staff_id                INT NOT NULL,                             -- Nhân viên
+    salary_month            INT NOT NULL,                             -- Tháng tính lương
+    salary_year             INT NOT NULL,                             -- Năm tính lương
+    total_shifts            INT NOT NULL DEFAULT 0,                   -- Tổng số ca làm
+    salary_per_shift        DECIMAL(10,2) NOT NULL DEFAULT 0.00,      -- Lương theo ca tại thời điểm tính
+    base_salary             DECIMAL(12,2) NOT NULL DEFAULT 0.00,      -- Lương cơ bản tổng ca (total_shifts * salary_per_shift)
+    allowance               DECIMAL(10,2) NOT NULL DEFAULT 0.00,      -- Phụ cấp chức vụ
+    holiday_bonus           DECIMAL(10,2) NOT NULL DEFAULT 0.00,      -- Tiền làm ngày lễ
+    overtime_salary         DECIMAL(10,2) NOT NULL DEFAULT 0.00,      -- Tiền tăng ca
+    late_penalty            DECIMAL(10,2) NOT NULL DEFAULT 0.00,      -- Tiền phạt đi muộn
+    bonus_amount            DECIMAL(10,2) NOT NULL DEFAULT 0.00,      -- Tổng tiền thưởng khác (thủ công)
+    fine_amount             DECIMAL(10,2) NOT NULL DEFAULT 0.00,      -- Tổng tiền phạt khác (thủ công)
+    total_salary            DECIMAL(12,2) NOT NULL DEFAULT 0.00,      -- Tổng lương thực nhận cuối tháng
+    payment_status          ENUM('UNPAID', 'PAID')
+                            NOT NULL DEFAULT 'UNPAID',                -- Trạng thái thanh toán lương
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,       -- Ngày tạo bảng lương
+    updated_at              DATETIME DEFAULT CURRENT_TIMESTAMP
+                        ON UPDATE CURRENT_TIMESTAMP,                  -- Ngày cập nhật bảng lương
+
+    CONSTRAINT uq_salary
+        UNIQUE (staff_id, salary_month, salary_year),
+
+    CONSTRAINT fk_salary_staff
+        FOREIGN KEY (staff_id)
+        REFERENCES staffs(staff_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 32. NOTIFICATIONS
+-- Bảng lưu thông báo hệ thống
+-- =============================================================================
+CREATE TABLE notifications (
+
+    notification_id     INT PRIMARY KEY AUTO_INCREMENT,               -- Mã thông báo
+    account_id          INT NOT NULL,                                 -- Người nhận
+    title               VARCHAR(255) NOT NULL,                        -- Tiêu đề
+    content             TEXT NOT NULL,                                -- Nội dung
+    type                ENUM(
+                            'BOOKING',
+                            'CHAT',
+                            'SYSTEM',
+                            'SALARY'
+                        ) NOT NULL,                                   -- Loại thông báo
+    reference_type      VARCHAR(50),                                  -- Đối tượng liên quan
+    reference_id        INT,                                          -- ID đối tượng
+    is_read             BOOLEAN NOT NULL DEFAULT FALSE,               -- Đã đọc
+    is_sent             BOOLEAN NOT NULL DEFAULT FALSE,               -- Đã gửi
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Ngày tạo
+
+    CONSTRAINT fk_notification_account
+        FOREIGN KEY (account_id)
+        REFERENCES accounts(account_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- 33. ACTIVITY_LOGS
+-- Bảng lưu lịch sử hoạt động hệ thống (Timeline Dashboard)
+-- =============================================================================
+CREATE TABLE activity_logs (
+
+    activity_id         INT PRIMARY KEY AUTO_INCREMENT,               -- Mã hoạt động
+    account_id          INT,                                          -- Tài khoản thực hiện
+    activity_type       VARCHAR(50) NOT NULL,                         -- Loại hoạt động (BOOKING, PAYMENT, CHECKIN, CHECKOUT, CHAT, SERVICE, ROOM, PRODUCT, INVENTORY, SYSTEM)
+    description         TEXT NOT NULL,                                -- Nội dung chi tiết hoạt động
+    reference_type      VARCHAR(50),                                  -- Đối tượng liên quan
+    reference_id        INT,                                          -- ID đối tượng liên quan
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Ngày ghi nhận
+
+    CONSTRAINT fk_actlog_account
+        FOREIGN KEY (account_id)
+        REFERENCES accounts(account_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+
+);
+
+
+-- =============================================================================
+-- CHỈ MỤC TỐI ƯU (INDEXES)
+-- =============================================================================
+CREATE INDEX idx_bookings_customer ON bookings(customer_id);
+CREATE INDEX idx_bookings_status ON bookings(status);
+CREATE INDEX idx_booking_details_booking ON booking_details(booking_id);
+CREATE INDEX idx_booking_details_staff ON booking_details(staff_id);
+CREATE INDEX idx_invoices_customer ON invoices(customer_id);
+CREATE INDEX idx_invoices_status ON invoices(status);
+CREATE INDEX idx_invoice_items_invoice ON invoice_items(invoice_id);
+CREATE INDEX idx_products_category ON products(category_id);
+CREATE INDEX idx_products_status ON products(status);
+CREATE INDEX idx_rooms_status ON rooms(status);
+CREATE INDEX idx_timekeepings_staff_date ON timekeepings(staff_id, work_date);
+CREATE INDEX idx_staff_shift_assignments_date ON staff_shift_assignments(work_date, shift_id);
+CREATE INDEX idx_activity_logs_created ON activity_logs(created_at);
