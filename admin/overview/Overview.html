@@ -1,98 +1,222 @@
-<!-- Chèn thêm thư viện Icon chuyên nghiệp thay thế cho Emoji -->
-<link
-  href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css"
-  rel="stylesheet"
-/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="Overview.css" />
-
-<div class="cstm-wrapper-full">
-  <!-- Thống kê KPI Gradient Đậm Đà -->
-  <div class="cstm-kpi-grid">
-    <div class="cstm-kpi-card card-revenue">
-      <div class="cstm-kpi-icon">
-        <i class="ri-money-dollar-box-fill"></i>
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Thống Kê Tổng Quan</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN để vẽ biểu đồ -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome CDN cho Icon -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="Overview.css" />
+  </head>
+  <body class="bg-[#fdfdfd] text-[#262626] font-sans p-4">
+    <div class="max-w-7xl mx-auto space-y-3">
+      <!-- HEADER CỐ ĐỊNH / TIÊU ĐỀ -->
+      <div class="flex justify-between items-center pb-1">
+        <div>
+          <h1 class="text-xl font-bold text-[#1e293b] flex items-center gap-2">
+            <i class="fa-solid fa-chart-line text-[#ff7a45]"></i> Thống Kê Tổng
+            Quan
+          </h1>
+          <p class="text-xs text-[#737373] mt-0.5">
+            Báo cáo hoạt động và quản lý lịch hẹn cửa hàng PetCare
+          </p>
+        </div>
+        <div
+          class="text-xs text-[#ea580c] bg-[#fff7ed] px-3.5 py-1.5 rounded-lg border border-[#ffedd5] font-semibold flex items-center"
+        >
+          <i class="fa-regular fa-calendar-check text-[#ff7a45] mr-2"></i>Thứ
+          Sáu, 14/08/2026
+        </div>
       </div>
-      <div class="cstm-kpi-info">
-        <span class="cstm-kpi-label">Doanh thu tháng này</span>
-        <h3 class="cstm-kpi-value" id="kpiRevenue">000,000,000 đ</h3>
+
+      <!-- 1. TOP STATS (CARD THỐNG KÊ MÀU NỀN ĐỒNG BỘ ROOMMANAGEMENT) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <!-- Card 1: Doanh thu tháng này -->
+        <div
+          class="stat-card ready rounded-xl p-3.5 flex justify-between items-center"
+        >
+          <div>
+            <p class="text-[11px] text-[#737373]">Doanh thu tháng này</p>
+            <h3 class="text-[18px] font-bold text-[#15803d] mt-0.5">
+              128.500.000 ₫
+            </h3>
+            <p
+              class="text-[11px] text-[#16a34a] mt-0.5 flex items-center font-semibold"
+            >
+              <i class="fa-solid fa-arrow-trend-up mr-1"></i> +12.5% so với
+              tháng trước
+            </p>
+          </div>
+          <div class="stat-icon-box text-[#16a34a]">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+        </div>
+
+        <!-- Card 2: Lịch hẹn hôm nay -->
+        <div
+          class="stat-card occupied rounded-xl p-3.5 flex justify-between items-center"
+        >
+          <div>
+            <p class="text-[11px] text-[#737373]">Lịch hẹn hôm nay</p>
+            <h3 class="text-[18px] font-bold text-[#1d4ed8] mt-0.5">
+              24 Lịch hẹn
+            </h3>
+            <p class="text-[11px] text-[#64748b] mt-0.5">
+              <span class="text-[#c2410c] font-semibold">5 chờ duyệt</span> •
+              <span class="text-[#2563eb] font-semibold">19 đã xác nhận</span>
+            </p>
+          </div>
+          <div class="stat-icon-box text-[#2563eb]">
+            <i class="fa-solid fa-calendar-day"></i>
+          </div>
+        </div>
+
+        <!-- Card 3: Nhân sự ca trực -->
+        <div
+          class="stat-card assigned rounded-xl p-3.5 flex justify-between items-center"
+        >
+          <div>
+            <p class="text-[11px] text-[#737373]">Nhân sự ca trực</p>
+            <h3 class="text-[18px] font-bold text-[#ea580c] mt-0.5">
+              8 / 10 Nhân viên
+            </h3>
+            <p
+              class="text-[11px] text-[#c2410c] mt-0.5 font-semibold flex items-center"
+            >
+              <i class="fa-solid fa-user-check mr-1"></i> 8 nhân sự có mặt tại
+              cửa hàng
+            </p>
+          </div>
+          <div class="stat-icon-box text-[#ea580c]">
+            <i class="fa-solid fa-users"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. BIỂU ĐỒ DOANH THU & TRẠNG THÁI PHÒNG -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <!-- Biểu đồ xu hướng 6 tháng (Chiếm 2 cột) -->
+        <div
+          class="lg:col-span-2 bg-white p-3.5 rounded-lg border border-[#f1f5f9]"
+        >
+          <div class="section-title">Biểu Đồ Xu Hướng Doanh Thu (6 Tháng)</div>
+          <div class="h-60 mt-2">
+            <canvas id="revenueChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Trạng thái Phòng / Khu vực (Chiếm 1 cột) -->
+        <div
+          class="bg-white p-3.5 rounded-lg border border-[#f1f5f9] flex flex-col"
+        >
+          <div class="section-title flex justify-between items-center">
+            <span>Trạng Thái Phòng / Khu Vực</span>
+            <span class="status-pill status-ready">Đang hoạt động</span>
+          </div>
+          <div
+            class="space-y-2.5 overflow-y-auto flex-1 pr-1 custom-scrollbar max-h-60 mt-2"
+          >
+            <div
+              class="p-2.5 bg-[#f8fafc] rounded-lg border border-[#f1f5f9] flex justify-between items-center"
+            >
+              <div>
+                <p class="font-semibold text-xs text-[#1e293b]">
+                  Phòng Spa & Grooming 01
+                </p>
+                <p class="text-[11px] text-[#64748b]">
+                  Đang phục vụ:
+                  <span class="text-[#ea580c] font-semibold">Bé Kiki</span>
+                </p>
+              </div>
+              <span class="status-pill status-occupied">Bận</span>
+            </div>
+
+            <div
+              class="p-2.5 bg-[#f8fafc] rounded-lg border border-[#f1f5f9] flex justify-between items-center"
+            >
+              <div>
+                <p class="font-semibold text-xs text-[#1e293b]">
+                  Phòng Spa & Grooming 02
+                </p>
+                <p class="text-[11px] text-[#64748b]">
+                  Đang phục vụ:
+                  <span class="text-[#ea580c] font-semibold">Mèo Miu</span>
+                </p>
+              </div>
+              <span class="status-pill status-occupied">Bận</span>
+            </div>
+
+            <div
+              class="p-2.5 bg-[#f8fafc] rounded-lg border border-[#f1f5f9] flex justify-between items-center"
+            >
+              <div>
+                <p class="font-semibold text-xs text-[#1e293b]">
+                  Phòng Tắm & Vệ sinh 01
+                </p>
+                <p class="text-[11px] text-[#64748b]">Sẵn sàng đón khách</p>
+              </div>
+              <span class="status-pill status-ready">Trống</span>
+            </div>
+
+            <div
+              class="p-2.5 bg-[#f8fafc] rounded-lg border border-[#f1f5f9] flex justify-between items-center"
+            >
+              <div>
+                <p class="font-semibold text-xs text-[#1e293b]">
+                  Phòng Khám / Khách Sạn
+                </p>
+                <p class="text-[11px] text-[#64748b]">Sẵn sàng đón khách</p>
+              </div>
+              <span class="status-pill status-ready">Trống</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. DANH SÁCH LỊCH HẸN ĐANG CHỜ DUYỆT -->
+      <div
+        class="bg-white rounded-lg border border-[#f1f5f9] overflow-hidden p-3.5"
+      >
+        <div class="section-title flex justify-between items-center mb-3">
+          <div>
+            <span>Lịch Hẹn Đang Chờ Duyệt</span>
+            <span class="text-[11px] font-normal text-[#64748b] block"
+              >Danh sách tự động cập nhật thời gian thực</span
+            >
+          </div>
+          <span id="pending-count" class="status-pill status-assigned">
+            5 Yêu cầu mới
+          </span>
+        </div>
+
+        <!-- BẢNG CUỘN ĐỒNG BỘ STYLE TABLE ROOMMANAGEMENT -->
+        <div class="overflow-y-auto max-h-72 custom-scrollbar">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr>
+                <th class="py-2 px-3">Mã Đơn</th>
+                <th class="py-2 px-3">Khách Hàng</th>
+                <th class="py-2 px-3">Thú Cưng</th>
+                <th class="py-2 px-3">Thời Gian Đặt</th>
+                <th class="py-2 px-3">Dịch Vụ Đăng Ký</th>
+                <th class="py-2 px-3 text-center w-36">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="pending-list">
+              <!-- Dữ liệu render từ JS -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <div class="cstm-kpi-card card-bookings">
-      <div class="cstm-kpi-icon">
-        <i class="ri-calendar-check-fill"></i>
-      </div>
-      <div class="cstm-kpi-info">
-        <span class="cstm-kpi-label">Lịch hẹn hôm nay</span>
-        <h3 class="cstm-kpi-value" id="kpiTodayBookings">0</h3>
-      </div>
-    </div>
-
-    <div class="cstm-kpi-card card-staff">
-      <div class="cstm-kpi-icon">
-        <i class="ri-user-heart-fill"></i>
-      </div>
-      <div class="cstm-kpi-info">
-        <span class="cstm-kpi-label">Nhân sự có mặt</span>
-        <h3 class="cstm-kpi-value" id="kpiActiveStaff">0/0</h3>
-      </div>
-    </div>
-  </div>
-
-  <!-- Live Board: Biểu đồ & Trạng thái phòng -->
-  <div class="cstm-live-board">
-    <div class="cstm-board-column">
-      <h3 class="cstm-board-title">
-        <i class="ri-bar-chart-2-fill"></i> Xu Hướng Doanh Thu (6 Tháng)
-      </h3>
-      <div class="cstm-chart-container">
-        <canvas id="revenueChart"></canvas>
-      </div>
-    </div>
-
-    <div class="cstm-board-column">
-      <h3 class="cstm-board-title">
-        <i class="ri-hotel-bed-fill"></i> Trạng Thái Phòng Thú Cưng
-      </h3>
-      <div class="cstm-room-grid" id="roomLiveStatus">
-        <div class="cstm-room-card loading">Đang tải dữ liệu phòng...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bảng danh sách chờ duyệt đậm nét -->
-  <div class="cstm-data-section">
-    <div class="cstm-section-header">
-      <h2 class="cstm-section-title">
-        <i class="ri-notification-badge-fill"></i> Danh Sách Lịch Hẹn Đang Chờ
-        Duyệt
-      </h2>
-      <button class="cstm-btn cstm-btn-link" id="btnViewAllBookings">
-        Xem tất cả lịch hẹn <i class="ri-arrow-right-line"></i>
-      </button>
-    </div>
-
-    <div class="cstm-table-wrapper">
-      <table class="cstm-table">
-        <thead>
-          <tr>
-            <th>Mã Khách</th>
-            <th>Tên Thú Cưng</th>
-            <th>Dịch Vụ Đăng Ký</th>
-            <th>Thời Gian</th>
-            <th>Thanh Toán</th>
-            <th class="text-center">Hành Động</th>
-          </tr>
-        </thead>
-        <tbody id="tablePendingBookings">
-          <tr>
-            <td colspan="6" class="text-center">Đang tải dữ liệu...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<script src="Overview.js"></script>
+    <script src="Overview.js"></script>
+  </body>
+</html>

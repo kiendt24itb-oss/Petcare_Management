@@ -56,7 +56,8 @@ function checkLoginStatus() {
 
 function loadAuthComponent(type) {
   const container = document.getElementById("authModalContainer");
-  let fileName =
+
+  const fileName =
     type === "login" ? "auth/login/Login.html" : "auth/register/Register.html";
 
   fetch(fileName)
@@ -65,19 +66,48 @@ function loadAuthComponent(type) {
       return response.text();
     })
     .then((htmlContent) => {
-      container.innerHTML = htmlContent;
-      const oldScript = container.querySelector("script");
+      // Xóa script xác thực cũ
+      const oldScript = document.getElementById("loadedAuthScript");
       if (oldScript) {
-        const existingScript = document.getElementById("loadedAuthScript");
-        if (existingScript) existingScript.remove();
+        oldScript.remove();
+      }
 
+      // Hiển thị modal
+      container.innerHTML = htmlContent;
+
+      // Lấy thẻ script trong HTML
+      const scriptTag = container.querySelector("script");
+
+      if (scriptTag) {
+        const src = scriptTag.getAttribute("src");
+
+        // Xóa script khỏi HTML để tránh Browser chạy 2 lần
+        scriptTag.remove();
+
+        // Load lại đúng 1 lần
         const newScript = document.createElement("script");
         newScript.id = "loadedAuthScript";
-        newScript.src = oldScript.getAttribute("src");
+        if (src) {
+          newScript.src = src;
+        }
+
+        newScript.onload = () => {
+          if (type === "login" && typeof window.initializeLoginForm === "function") {
+            window.initializeLoginForm();
+          } else if (
+            type === "register" &&
+            typeof window.initializeRegisterForm === "function"
+          ) {
+            window.initializeRegisterForm();
+          }
+        };
+
         document.body.appendChild(newScript);
       }
     })
-    .catch((error) => console.error("Lỗi mở modal xác thực:", error));
+    .catch((error) => {
+      console.error("Lỗi mở modal xác thực:", error);
+    });
 }
 
 function closeAuthModal(event) {

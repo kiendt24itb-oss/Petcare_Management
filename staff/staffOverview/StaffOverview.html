@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PetCare Staff Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="StaffOverview.css" />
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <div class="welcome-banner">
+        <div class="welcome-text">
+          <h1 id="greeting-title">Chào buổi sáng! 👋</h1>
+          <h2 id="user-name">Dương Trung Kiên</h2>
+          <p>Hãy cùng PetCare chăm sóc thú cưng thật tận tâm hôm nay nhé!</p>
+        </div>
+        <div class="welcome-img">
+          <img src="../../uploads/BannerSV.png" alt="Pet Banner" />
+        </div>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon icon-orange">
+            <i class="fa-regular fa-calendar-days"></i>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">Ca làm hôm nay</span>
+            <div class="metric-value" id="today-shifts">0</div>
+            <a href="#" class="metric-link">Xem chi tiết</a>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon icon-blue">
+            <i class="fa-regular fa-clock"></i>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">Giờ làm hôm nay</span>
+            <div class="metric-value">
+              <span id="worked-hours">00:00</span>
+              <span class="sub-text" id="total-hours">/ 8 giờ</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon icon-green">
+            <i class="fa-regular fa-circle-check"></i>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">Số ca đã hoàn thành</span>
+            <div class="metric-value" id="completed-shifts-month">0</div>
+            <span class="sub-text">Tháng này</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-grid">
+        <div class="card current-shift-card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-user-gear"></i> Ca làm việc hôm nay</h3>
+            <span class="status-badge status-running" id="shift-status-badge"
+              >Đang diễn ra</span
+            >
+          </div>
+          <div class="shift-info-box">
+            <div class="shift-title-row">
+              <h4 id="current-shift-name">---</h4>
+              <i class="fa-solid fa-chevron-right"></i>
+            </div>
+            <p class="shift-time">
+              <i class="fa-regular fa-clock"></i>
+              <span id="current-shift-time">--:-- - --:--</span> (<span
+                id="current-shift-duration"
+                >0 giờ</span
+              >)
+            </p>
+            <p class="shift-location">
+              <i class="fa-solid fa-location-dot"></i>
+              <span id="current-shift-location">---</span>
+            </p>
+          </div>
+          <div class="progress-section">
+            <div class="progress-bar-container">
+              <div class="progress-bar" id="shift-progress-bar"></div>
+            </div>
+            <p class="progress-text">
+              Đã làm: <span id="progress-text-val">00:00 / 08:00</span>
+            </p>
+          </div>
+          <button class="btn btn-orange btn-full">Xem chi tiết ca làm</button>
+        </div>
+
+        <div class="card tasks-card">
+          <div class="card-header">
+            <h3>
+              <i class="fa-regular fa-calendar-check"></i> Công việc hôm nay
+            </h3>
+            <a href="#" class="header-link">Xem tất cả</a>
+          </div>
+          <div class="task-progress-list" id="task-list-container"></div>
+        </div>
+
+        <div class="card upcoming-shifts-card">
+          <div class="card-header">
+            <h3><i class="fa-regular fa-calendar-days"></i> Lịch ca sắp tới</h3>
+            <a href="#" class="header-link">Xem lịch đầy đủ</a>
+          </div>
+          <div class="upcoming-list" id="upcoming-shifts-container"></div>
+        </div>
+
+        <div class="card notifications-card">
+          <div class="card-header">
+            <h3><i class="fa-regular fa-bell"></i> Thông báo nội bộ</h3>
+            <a href="#" class="header-link">Xem tất cả</a>
+          </div>
+          <div class="notif-list" id="notif-container"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="StaffOverview.js"></script>
+  </body>
+</html>

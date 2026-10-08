@@ -1,102 +1,84 @@
 /**
  * 👤 FILE: Staff_profile.js
- * Xử lý thông tin cá nhân nhân viên & bảng lương 3 ô (Bản chuẩn hóa bảo mật & Liên thông Token)
+ * Xử lý thông tin Hồ sơ Nhân viên & Lương thưởng
  */
 
-// 🌐 Cấu hình địa chỉ Server tập trung - Sửa một nơi, áp dụng toàn bộ file
-const SERVER_HOST = "http://localhost:8080";
-const BASE_URL = `${SERVER_HOST}/api`;
+const SERVER_HOST = "http://localhost/petcare_management_v2_api";
+const BASE_URL = `${SERVER_HOST}/index.php/api`;
 
-// Bộ nhớ tạm lưu trữ cấu trúc gốc từ Back-end để bảo toàn dữ liệu khi cập nhật
-let currentStaffRawId = null;
-let currentPositionId = null;
 let uploadedAvatarPath = null;
 
 document.addEventListener("DOMContentLoaded", function () {
-  // 🔑 Nhặt token trực tiếp từ thanh địa chỉ URL hoặc Kho lưu trữ localStorage
   const urlParams = new URLSearchParams(window.location.search);
   let token = urlParams.get("token");
 
-  if (!token) {
-    token = localStorage.getItem("petcare_token");
-  }
-  if (!token && window.parent && window.parent.localStorage) {
-    token = window.parent.localStorage.getItem("petcare_token");
+  if (!token) token = localStorage.getItem("petcare_token");
+  if (!token && window.parent) {
+    try {
+      token = window.parent.localStorage.getItem("petcare_token");
+    } catch (e) {
+      console.warn("Iframe access blocked:", e);
+    }
   }
 
-  // 🧹 DỌN RÁC & KIỂM TRA TOKEN CHẶN TỪ VÒNG GỬI XE
   if (
+    !token ||
     token === "null" ||
     token === "undefined" ||
-    !token ||
     token.trim() === ""
   ) {
-    console.error("❌ Front-End chặn đứng: Không tìm thấy Token hợp lệ!");
-    showLocalToast("Phiên làm việc hết hạn. Vui lòng đăng nhập lại!", "error");
+    showLocalToast(
+      "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại!",
+      "error",
+    );
     return;
   }
 
-  console.log("🔒 Token thông quan thành công:", token);
-
-  // Tiến hành lấy thông tin nhân viên đổ lên Form
+  // 1. Tải hồ sơ Nhân viên
   loadStaffProfile(token);
 
-  // 📸 XỬ LÝ CHỌN ẢNH ĐẠI DIỆN TRỰC QUAN (PREVIEW & UPLOAD)
+  // 2. Upload Avatar
   const inputAvatar = document.getElementById("inputAvatar");
-  const staffAvatar = document.getElementById("staffAvatar");
-
   if (inputAvatar) {
-    inputAvatar.addEventListener("change", async function (event) {
-      const file = event.target.files[0];
-
+    inputAvatar.addEventListener("change", async function (e) {
+      const file = e.target.files[0];
       if (!file) return;
 
       if (!file.type.startsWith("image/")) {
         showLocalToast(
-          "Vui lòng chọn tệp hình ảnh hợp lệ (png, jpg, webp)!",
+          "Vui lòng chọn ảnh đại diện hợp lệ (png, jpg, webp)!",
           "error",
         );
-        inputAvatar.value = "";
         return;
       }
 
-      // Preview ảnh tạm thời bằng Base64 của trình duyệt cho nhanh
       const reader = new FileReader();
-      reader.onload = function (e) {
-        staffAvatar.src = e.target.result;
+      reader.onload = function (ev) {
+        document.getElementById("staffAvatar").src = ev.target.result;
       };
       reader.readAsDataURL(file);
 
-      // Upload chính thức lên server lưu trữ
-      await uploadAvatar(file, token);
+      await uploadStaffAvatar(file, token);
+      inputAvatar.value = "";
     });
   }
 
-  // 💾 LẮNG NGHE SỰ KIỆN LƯU THAY ĐỔI PROFILE
-  const formUpdate = document.getElementById("formUpdateStaff");
-  if (formUpdate) {
-    formUpdate.addEventListener("submit", function (event) {
-      submitUpdateStaff(event, token);
-    });
-  }
-
-  // 🔄 LẮNG NGHE SỰ KIỆN BẤM NÚT "ĐẶT LẠI" (RESET FORM)
-  const btnReset = document.getElementById("btnReset");
-  if (btnReset) {
-    btnReset.addEventListener("click", function () {
-      loadStaffProfile(token);
-      showLocalToast("Đã khôi phục lại dữ liệu ban đầu!", "success");
+  // 3. Submit Cập nhật Form
+  const form = document.getElementById("formUpdateStaff");
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      submitUpdateStaff(token);
     });
   }
 });
 
 /**
- * 📥 Hàm gọi API lấy thông tin Profile Nhân Viên đổ vào các ô dữ liệu
+ * 📥 Tải dữ liệu Nhân viên từ API
  */
 async function loadStaffProfile(token) {
   try {
-    // Gọi thẳng cổng /me dành riêng cho tài khoản đang login (Hết lỗi 403 Forbidden)
-    const response = await fetch(`${BASE_URL}/staffs/me`, {
+    const response = await fetch(`${BASE_URL}/staff/profile`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -104,103 +86,92 @@ async function loadStaffProfile(token) {
       },
     });
 
-    if (response.ok) {
-      const staff = await response.json(); // Nhận trực tiếp duy nhất 1 cục object của Staff đang đăng nhập
-      console.log("📊 Dữ liệu hồ sơ Staff nhận từ Server:", staff);
+    const result = await response.json();
 
-      // 💾 KÉT SẮT LƯU TRỮ THÔ ID VÀ POSITION PHỤC VỤ CHO UPDATE
-      currentStaffRawId = staff.staffId;
-      currentPositionId = staff.positionId || null; // Giữ lại ID chức vụ để tránh bị rỗng DB khi update
-
-      document.getElementById("rawStaffId").value = currentStaffRawId;
-      document.getElementById("positionId").value = currentPositionId;
-
-      // 🎯 Đổ dữ liệu vào các ô Input HTML của Staff (Mã nhân viên tự gen nhảy chuẩn bài)
-      document.getElementById("staffCode").value = staff.staffCode || "";
-      document.getElementById("fullName").value = staff.fullName || "";
-      document.getElementById("cccd").value = staff.cccd || ""; // Tự động điền số CCCD cũ nếu có
-      document.getElementById("phone").value = staff.phone || "";
-      document.getElementById("gender").value = staff.gender || "MALE";
-      document.getElementById("address").value = staff.address || "";
-      document.getElementById("email").value = staff.email || ""; // 🌟 ĐÃ SỬA: Cho phép hiển thị và sửa bình thường
-
-      // 🌟 ĐÃ SỬA: Đổ dữ liệu chức vụ vào ô input disabled hiển thị trên form
-      const positionInput = document.getElementById("positionName");
-      if (positionInput) {
-        positionInput.value =
-          staff.positionName || "Chưa cấu hình vị trí (Chờ Admin gán)";
-      }
-
-      // Cập nhật Header Profile bên cột trái (Sidebar)
-      const profileNameEl = document.getElementById("profileName");
-      if (profileNameEl) {
-        profileNameEl.innerText = staff.fullName || "Nhân viên";
-      }
-      const profileSidebarPosEl = document.getElementById("profileSidebarPos");
-      if (profileSidebarPosEl) {
-        profileSidebarPosEl.innerText =
-          staff.positionName || "Chưa cấu hình vị trí";
-      }
-
-      // 📊 ĐỔ DỮ LIỆU BẢNG TÍNH LƯƠNG & THƯỞNG 3 Ô GỌN GÀNG (Định dạng tiền tệ VNĐ)
-      document.getElementById("sal-base").innerText = formatVND(staff.salary);
-      document.getElementById("sal-bonus").innerText = formatVND(staff.bonus);
-      document.getElementById("sal-total").innerText = formatVND(
-        staff.totalSalary,
-      );
-
-      // 📸 HIỂN THỊ ẢNH ĐẠI DIỆN ĐƯỜNG DẪN TƯƠNG ĐỐI TỪ SERVER
-      if (staff.avatar) {
-        uploadedAvatarPath = staff.avatar;
-        document.getElementById("staffAvatar").src = getImageUrl(staff.avatar);
-      }
-
-      // 🌟 ĐỒNG BỘ HOÁ TÊN (FULLNAME) VÀO LOCALSTORAGE & DASHBOARD CHA NGAY KHI VÀO TRANG
-      if (staff.fullName && staff.fullName.trim() !== "") {
-        localStorage.setItem("petcare_username", staff.fullName);
-        if (window.parent && window.parent.document) {
-          const parentNameEl =
-            window.parent.document.getElementById("userProfileName");
-          if (parentNameEl) parentNameEl.innerText = staff.fullName;
-        }
-      }
-    } else {
-      showLocalToast(`Lỗi lấy thông tin: ${response.status}`, "error");
+    if (!response.ok || !result.status) {
+      showLocalToast(result.message || "Lỗi tải thông tin nhân viên!", "error");
+      return;
     }
-  } catch (error) {
-    console.error("Lỗi kết nối endpoint staff profile:", error);
+
+    const staff = result.data;
+    const avatar = staff.avatar;
+
+    if (
+      avatar &&
+      avatar.trim() !== "" &&
+      avatar !== "null" &&
+      !avatar.includes("default-avatar")
+    ) {
+      uploadedAvatarPath = avatar;
+      const avatarUrl = getImageUrl(avatar);
+      document.getElementById("staffAvatar").src = avatarUrl;
+      localStorage.setItem("petcare_avatar", avatar);
+
+      syncParentAvatar(avatarUrl);
+    } else {
+      uploadedAvatarPath = null;
+      localStorage.removeItem("petcare_avatar");
+      const defaultImg = getImageUrl(null);
+      document.getElementById("staffAvatar").src = defaultImg;
+      syncParentAvatar(defaultImg);
+    }
+
+    // Đổ dữ liệu vào inputs
+    document.getElementById("staffCode").value = staff.staffCode || "";
+    document.getElementById("positionName").value =
+      staff.positionName || "Nhân viên";
+    document.getElementById("fullName").value = staff.fullName || "";
+    document.getElementById("phone").value = staff.phone || "";
+    document.getElementById("citizenId").value = staff.citizenId || "";
+    document.getElementById("email").value = staff.email || "";
+    document.getElementById("address").value = staff.address || "";
+    if (staff.gender) document.getElementById("gender").value = staff.gender;
+
+    document.getElementById("profileName").innerText =
+      staff.fullName || "Nhân viên";
+    document.getElementById("profileSidebarPos").innerText =
+      staff.positionName || "NHÂN VIÊN";
+
+    // Tính Lương Thưởng
+    const baseSalary = parseFloat(staff.baseSalaryPerShift) || 0;
+    const bonus = baseSalary * 0.1;
+
+    document.getElementById("sal-base").innerText = formatVND(baseSalary);
+    document.getElementById("sal-bonus").innerText = formatVND(bonus);
+    document.getElementById("sal-total").innerText = formatVND(
+      baseSalary + bonus,
+    );
+
+    syncParentName(staff.fullName || "Nhân viên");
+  } catch (e) {
+    console.error(e);
     showLocalToast("Không thể kết nối đến máy chủ dữ liệu!", "error");
   }
 }
 
 /**
- * 📤 Hàm xử lý đóng gói dữ liệu bắn API PUT gửi lên Back-End để cập nhật
+ * 📤 Submit thông tin cập nhật
  */
-async function submitUpdateStaff(event, token) {
-  event.preventDefault();
+async function submitUpdateStaff(token) {
+  const citizenId = document.getElementById("citizenId").value.trim();
 
-  // Đóng gói đúng tệp Request DTO cấu trúc của StaffRequest ở Back-end
+  if (citizenId !== "" && !/^\d{12}$/.test(citizenId)) {
+    showLocalToast("Số CCCD phải bao gồm đúng 12 chữ số!", "error");
+    return;
+  }
+
   const updateData = {
     fullName: document.getElementById("fullName").value.trim(),
-    gender: document.getElementById("gender").value,
-    email: document.getElementById("email").value.trim(), // Cho phép tự cập nhật lại email liên hệ
-    cccd: document.getElementById("cccd").value.trim(), // Cho phép tự cập nhật số CCCD cá nhân
     phone: document.getElementById("phone").value.trim(),
-    avatar: uploadedAvatarPath || null, // Lưu đường dẫn ảnh tương đối
+    citizenId: citizenId,
     address: document.getElementById("address").value.trim(),
-    positionId: parseInt(document.getElementById("positionId").value) || null,
-    // Vì Staff tự sửa nên lương thưởng gửi lên gì cũng được, BE đã bọc logic tự động khóa giữ nguyên lương cũ
-    salary: 0,
-    bonus: 0,
-    username: "",
-    password: "",
+    gender: document.getElementById("gender").value,
+    avatar: uploadedAvatarPath,
   };
 
   try {
-    console.log("===== ĐANG GỬI CẬP NHẬT HỒ SƠ STAFF =====", updateData);
-
-    const response = await fetch(`${BASE_URL}/staffs/${currentStaffRawId}`, {
-      method: "PUT",
+    const response = await fetch(`${BASE_URL}/staff/profile`, {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -208,119 +179,183 @@ async function submitUpdateStaff(event, token) {
       body: JSON.stringify(updateData),
     });
 
-    const resultText = await response.text();
+    const result = await response.json();
 
-    if (response.ok) {
-      showLocalToast("🎉 Cập nhật hồ sơ cá nhân thành công!", "success");
-
-      // Đồng bộ tên mới lên các Header giao diện
-      document.getElementById("profileName").innerText = updateData.fullName;
-
-      if (window.parent) {
-        localStorage.setItem("petcare_username", updateData.fullName);
-        const parentNameEl =
-          window.parent.document.getElementById("userProfileName");
-        if (parentNameEl) parentNameEl.innerText = updateData.fullName;
-      }
-
-      // Tải lại dữ liệu mới nhất từ DB để đồng bộ hoàn toàn
-      loadStaffProfile(token);
-    } else {
-      try {
-        const errorObj = JSON.parse(resultText);
-        showLocalToast(errorObj.message || "Cập nhật hồ sơ thất bại!", "error");
-      } catch (e) {
-        showLocalToast(
-          resultText || `Lỗi ${response.status}: Máy chủ từ chối xử lý!`,
-          "error",
-        );
-      }
+    if (!response.ok || !result.status) {
+      showLocalToast(result.message || "Cập nhật hồ sơ thất bại!", "error");
+      return;
     }
-  } catch (error) {
-    console.error("Lỗi cập nhật profile staff:", error);
-    showLocalToast("Mất kết nối đường truyền tới máy chủ!", "error");
+
+    const staff = result.data || updateData;
+    showLocalToast("🎉 Lưu thay đổi thành công!", "success");
+
+    if (staff.fullName) {
+      document.getElementById("profileName").innerText = staff.fullName;
+      syncParentName(staff.fullName);
+    }
+
+    loadStaffProfile(token);
+  } catch (e) {
+    console.error(e);
+    showLocalToast("Lỗi kết nối khi lưu thông tin!", "error");
   }
 }
 
 /**
- * 📸 Hàm upload avatar lên Server (Copy nguyên bản chuẩn từ customer của ní)
+ * 📸 Upload Ảnh Đại Diện
  */
-async function uploadAvatar(file, token) {
+async function uploadStaffAvatar(file, token) {
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append("avatar_file", file);
 
   try {
-    const response = await fetch(`${BASE_URL}/upload/avatar`, {
+    const response = await fetch(`${BASE_URL}/staff/upload-avatar`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
 
-    if (response.ok) {
-      uploadedAvatarPath = await response.text();
-      const fullUrl = getImageUrl(uploadedAvatarPath);
+    const result = await response.json();
 
-      // Cập nhật ảnh đại diện tức thì trên trang hiện tại
-      document.getElementById("staffAvatar").src = fullUrl;
-
-      // Cập nhật lên cả thanh menu lớn của Dashboard cha (nếu đang nằm trong iframe)
-      if (window.parent) {
-        const parentAvatar =
-          window.parent.document.getElementById("userAvatar");
-        if (parentAvatar) {
-          parentAvatar.src = fullUrl;
-        }
-      }
-      showLocalToast("Tải ảnh đại diện mới thành công!", "success");
-    } else {
-      showLocalToast("Upload ảnh thất bại!", "error");
+    if (!response.ok || !result.status) {
+      showLocalToast(result.message || "Tải ảnh lên thất bại!", "error");
+      return;
     }
-  } catch (error) {
-    console.error("Lỗi upload avatar:", error);
-    showLocalToast("Không thể upload ảnh lên máy chủ vị trí!", "error");
+
+    uploadedAvatarPath = result.data;
+    localStorage.setItem("petcare_avatar", uploadedAvatarPath);
+
+    const avatarUrl = getImageUrl(uploadedAvatarPath);
+    document.getElementById("staffAvatar").src = avatarUrl;
+    syncParentAvatar(avatarUrl);
+
+    showLocalToast("Cập nhật ảnh đại diện thành công!", "success");
+  } catch (e) {
+    console.error(e);
+    showLocalToast("Không thể tải ảnh lên máy chủ!", "error");
   }
 }
 
 /**
- * 🛠️ CÁC HÀM TIỆN ÍCH DÙNG CHUNG (BẢN CHUẨN ĐÃ ĐỒNG BỘ)
+ * 🖼️ Chuẩn hóa URL Ảnh
  */
 function getImageUrl(path) {
-  if (!path)
-    return "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZjlhOWUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZWNmZWYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0idXJsKCNnKSIvPldjdXN0b21lcjxjaXJjbGUgY3g9IjUwIiBjeT0iNDIiIHIpxIjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTI1LDc1IEMyNSw1OCA3NSw1OCA3NSw3NSIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==";
-  if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  return SERVER_HOST + path;
+  const defaultSvg =
+    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM0ZWFmN2IiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNhM2UxYTUiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iNDIiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTI1LDc1IEMyNSw1OCA3NSw1OCA3NSw3NSIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==";
+
+  if (
+    !path ||
+    path.trim() === "" ||
+    path === "null" ||
+    path.includes("default-avatar")
+  ) {
+    return defaultSvg;
+  }
+  if (
+    path.startsWith("http://") ||
+    path.startsWith("https://") ||
+    path.startsWith("data:image/")
+  ) {
+    return path;
+  }
+  const cleanHost = SERVER_HOST.endsWith("/")
+    ? SERVER_HOST.slice(0, -1)
+    : SERVER_HOST;
+  const cleanPath = path.startsWith("/") ? path : "/" + path;
+  return cleanHost + cleanPath;
 }
 
-function formatVND(value) {
-  if (value === null || value === undefined) return "0đ";
+function syncParentName(name) {
+  localStorage.setItem("petcare_username", name);
+  try {
+    if (window.parent && window.parent.document) {
+      const el = window.parent.document.getElementById("userProfileName");
+      if (el) el.innerText = name;
+    }
+  } catch (e) {}
+}
+
+function syncParentAvatar(url) {
+  try {
+    if (window.parent && window.parent.document) {
+      const el = window.parent.document.getElementById("userAvatar");
+      if (el) el.src = url;
+    }
+  } catch (e) {}
+}
+
+function formatVND(amount) {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
-  }).format(value);
+  }).format(amount);
 }
 
+/**
+ * 🍿 Hiển thị Toast mượt từ góc phải (Slide-In từ bên phải)
+ */
 function showLocalToast(message, type = "success") {
-  let container = null;
-  if (window.parent && window.parent.document) {
-    container = window.parent.document.getElementById("pet-toast-container");
+  // Tự động inject CSS Animation nếu chưa có
+  if (!document.getElementById("pet-toast-animation-style")) {
+    const style = document.createElement("style");
+    style.id = "pet-toast-animation-style";
+    style.innerHTML = `
+      @keyframes slideInRight {
+        from { transform: translateX(110%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(110%); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
   }
+
+  let container = document.getElementById("pet-toast-container");
   if (!container) {
-    container = document.getElementById("pet-toast-container");
-    if (!container) {
-      container = document.createElement("div");
-      container.id = "pet-toast-container";
-      document.body.appendChild(container);
-    }
+    container = document.createElement("div");
+    container.id = "pet-toast-container";
+    document.body.appendChild(container);
   }
+
+  // Cố định Container luôn nổi trên cùng bên phải góc màn hình
+  container.style.cssText =
+    "position: fixed; top: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;";
+
   const toast = document.createElement("div");
-  toast.className = `pet-toast ${type}`;
-  const icon = type === "success" ? "🎉" : "❌";
-  toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+  const bgColor = type === "success" ? "#10b981" : "#ef4444";
+  const icon = type === "success" ? "✓" : "✕";
+
+  toast.style.cssText = `
+    pointer-events: auto;
+    min-width: 250px;
+    max-width: 360px;
+    padding: 12px 18px;
+    background: #ffffff;
+    color: #2c3e50;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    border-left: 5px solid ${bgColor};
+    animation: slideInRight 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  `;
+
+  toast.innerHTML = `
+    <span style="width: 22px; height: 22px; background: ${bgColor}; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; flex-shrink: 0;">${icon}</span>
+    <span style="flex: 1; line-height: 1.4;">${message}</span>
+  `;
+
   container.appendChild(toast);
 
   setTimeout(() => {
-    toast.remove();
+    toast.style.animation = "slideOutRight 0.3s forwards ease-in";
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
   }, 3000);
 }

@@ -1,82 +1,111 @@
-/* ==========================================================================
-   🎨 KHAI BÁO BIẾN MÀU HỆ THỐNG PETCARE (FIX LỖI MẤT MÀU NÚT BẤM)
-   ========================================================================== */
 :root {
-  --primary-color: #ff7a45; /* Màu cam thương hiệu PetCare */
-  --primary-hover: #e06532; /* Màu cam đậm khi di chuột vào */
-  --dark-color: #4a3e39; /* Màu chữ nâu đen ấm áp */
-  --gray-text: #8c7e76; /* Màu chữ ghi xám */
-  --white: #ffffff; /* Màu nền trắng */
+  --primary-orange: #ff5722;
+  --primary-orange-hover: #e64a19;
+  --bg-sidebar-left: #fdfaf8;
+  --bg-main: #ffffff;
+  --bg-disabled: #f1ece9;
+  --text-dark: #2c3e50;
+  --text-muted: #7f8c8d;
+  --border-color: #f0ebe8;
+  --input-border: #e2e8f0;
+
+  --success-color: #10b981;
+  --success-bg: #ecfdf5;
+  --success-border: #a7f3d0;
+
+  --warning-color: #ef4444;
+  --warning-bg: #fef2f2;
+  --warning-border: #fecaca;
+
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
-/* ==========================================================================
-   ✨ V. CSS CHUYÊN NGHIỆP CHO TRANG THÔNG TIN KHÁCH HÀNG (ĐÃ FIX THỌT NÚT)
-   ========================================================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+}
+
+/* KHÓA CỐ ĐỊNH TRANG - KHÔNG CHO CUỘN */
+body,
+html {
+  width: 100%;
+  height: 100vh;
+  background-color: #f8f9fa;
+  overflow: hidden;
+}
+
 .cstm-wrapper-full {
   width: 100%;
-  height: 100%;
+  height: 100vh;
+  padding: 12px;
   display: flex;
-  align-items: center;
   justify-content: center;
-  box-sizing: border-box;
+  align-items: stretch;
 }
 
 .cstm-card-layout {
   display: flex;
   width: 100%;
   height: 100%;
-  background: var(--white);
+  background: var(--bg-main);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
+  border: 1px solid var(--border-color);
 }
 
-/* Cột trái: Sidebar Profile (Giảm padding dọc một chút để ôm vừa form) */
-.cstm-sidebar-profile {
-  flex: 0 0 260px;
-  background: linear-gradient(180deg, #fbf8f6 0%, #f5f0ec 100%);
+/* ==================== CỘT 1: SIDEBAR TRÁI ==================== */
+.cstm-sidebar-left {
+  flex: 0 0 240px;
+  background: var(--bg-sidebar-left);
+  border-right: 1px solid var(--border-color);
+  padding: 24px 16px 16px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 30px 20px;
-  border-right: 1px solid #ede5e0;
   text-align: center;
 }
 
 .cstm-avatar-container {
   position: relative;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
 .cstm-avatar-img {
-  width: 110px;
-  height: 110px;
+  width: 95px;
+  height: 95px;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid var(--white);
-  box-shadow: 0 8px 24px rgba(255, 122, 69, 0.15);
+  border: 4px solid #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .cstm-upload-badge {
   position: absolute;
   bottom: 2px;
   right: 2px;
-  width: 32px;
-  height: 32px;
-  background: var(--primary-color);
+  width: 30px;
+  height: 30px;
+  background: var(--primary-orange);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--white);
+  color: white;
   font-size: 13px;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
-}
-
-.cstm-upload-badge:hover {
-  transform: scale(1.1);
-  background: var(--primary-hover);
+  border: 2px solid white;
 }
 
 .cstm-upload-badge input {
@@ -84,60 +113,78 @@
 }
 
 .cstm-profile-name {
-  font-size: 17px;
-  color: #4a3e39;
+  font-size: 15.5px;
   font-weight: 700;
-  margin-bottom: 5px;
+  color: var(--text-dark);
+  margin-bottom: 4px;
 }
 
 .cstm-profile-status {
   display: inline-block;
-  background: rgba(255, 122, 69, 0.1);
-  color: var(--primary-color);
-  font-size: 10px;
+  background: #fff0eb;
+  color: var(--primary-orange);
+  font-size: 11px;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: 12px;
 }
 
 .cstm-profile-tip {
   font-size: 11.5px;
-  color: var(--gray-text);
-  line-height: 1.5;
+  color: #a0aec0;
+  line-height: 1.4;
   margin-top: auto;
-  background: rgba(255, 255, 255, 0.5);
-  padding: 10px;
-  border-radius: 10px;
+  padding-top: 10px;
 }
 
-/* Cột phải: Khu vực nhập liệu chính (Giảm padding tổng xuống 30px) */
-.cstm-main-form {
+/* ==================== CỘT 2: FORM CHÍNH ==================== */
+.cstm-main-content {
   flex: 1;
+  min-width: 0;
+  padding: 24px 32px;
   display: flex;
   flex-direction: column;
-  padding: 30px;
-  background: var(--white);
-  justify-content: space-between;
+}
+
+.cstm-top-form-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.cstm-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.cstm-title-icon {
+  width: 38px;
+  height: 38px;
+  background: #fff0eb;
+  color: var(--primary-orange);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
 }
 
 .cstm-section-title {
-  font-size: 19px;
-  color: #4a3e39;
+  font-size: 18px;
   font-weight: 700;
-  margin-bottom: 20px;
-  position: relative;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #fff6f2;
+  color: var(--text-dark);
 }
 
-/* Thu hẹp khoảng cách giữa các hàng từ 20px xuống 12px để tiết kiệm chiều cao */
-.cstm-grid-fields {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px 25px;
-  flex-grow: 1;
+.cstm-section-subtitle {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.cstm-form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .cstm-form-group {
@@ -145,52 +192,40 @@
   flex-direction: column;
 }
 
-.cstm-col-2 {
-  grid-column: span 2;
+.cstm-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
 }
 
 .cstm-label {
   font-size: 12.5px;
-  color: #6b5e58;
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--text-dark);
   margin-bottom: 6px;
 }
 
-/* Giảm nhẹ padding input từ 12px xuống 10px để form thon gọn hơn */
 .cstm-input,
 .cstm-select {
   width: 100%;
-  padding: 10px 14px;
-  border: 1.5px solid #eae1dc;
-  background: #fdfdfd;
-  border-radius: 8px;
-  color: var(--dark-color);
+  padding: 11px 14px;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
   font-size: 13.5px;
-  font-weight: 500;
+  color: var(--text-dark);
   outline: none;
-  box-sizing: border-box;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
 }
 
 .cstm-input:focus,
 .cstm-select:focus {
-  border-color: var(--primary-color);
-  background: var(--white);
-  box-shadow: 0 4px 15px rgba(255, 122, 69, 0.08);
+  border-color: var(--primary-orange);
+  box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.12);
 }
 
 .cstm-input-disabled {
-  background: #f5f2eb !important;
-  border-color: #ede5e0 !important;
-  color: #a89790 !important;
-  cursor: not-allowed;
-  font-weight: 700;
-}
-
-.cstm-input::placeholder {
-  color: #bfaea6;
-  font-style: italic;
-  font-size: 12.5px;
+  background: var(--bg-disabled) !important;
+  border-color: transparent !important;
 }
 
 .cstm-select-wrapper {
@@ -199,132 +234,354 @@
 
 .cstm-select {
   appearance: none;
-  -webkit-appearance: none;
   cursor: pointer;
 }
 
 .cstm-select-wrapper::after {
   content: "▾";
   position: absolute;
-  right: 15px;
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #bfaea6;
+  color: #a0aec0;
   pointer-events: none;
-  font-size: 15px;
 }
 
-.cstm-select:invalid {
-  color: #bfaea6;
-  font-style: italic;
-}
-
-/* Thanh hành động bám sát đáy, giảm margin hụt chiều cao */
-.cstm-actions-bar {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid #f2ece8;
+.cstm-email-inline-group {
   display: flex;
-  justify-content: flex-end;
-  gap: 15px;
-}
-
-/* Tối ưu lại kích thước nút bấm */
-.cstm-btn {
-  padding: 10px 28px;
-  border-radius: 20px;
-  font-size: 13.5px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-}
-
-.cstm-btn-secondary {
-  background: #f5f2eb;
-  color: #6b5e58;
-  border: 1px solid #ede5e0;
-}
-
-.cstm-btn-secondary:hover {
-  background: #eae1dc;
-}
-
-.cstm-btn-primary {
-  background: var(--primary-color);
-  color: var(--white);
-  border: none;
-  box-shadow: 0 4px 14px rgba(255, 122, 69, 0.2);
-}
-
-.cstm-btn-primary:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(224, 101, 50, 0.3);
-}
-
-.cstm-btn:active {
-  transform: scale(0.98);
-}
-
-/* Khung định vị nằm cố định ở góc trên bên phải màn hình */
-#pet-toast-container {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 10000; /* Đảm bảo luôn nổi lên trên cùng của Modal */
-  display: flex;
-  vertical-align: middle;
-  flex-direction: column;
   gap: 10px;
 }
 
-/* Định hình thanh Toast thông báo */
-.pet-toast {
+.cstm-email-inline-group .cstm-input {
+  flex: 1;
+}
+
+.cstm-btn-email-inline {
+  white-space: nowrap;
+  padding: 10px 16px;
   background: #ffffff;
-  padding: 14px 24px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  color: var(--primary-orange);
+  border: 1px solid #ffccbc;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cstm-btn-email-inline:hover {
+  background: var(--primary-orange);
+  color: white;
+}
+
+.cstm-btn-save-full {
+  width: 100%;
+  padding: 12px;
+  background: var(--primary-orange);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
   font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 6px;
+  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.2);
+  transition: all 0.2s;
+}
+
+.cstm-btn-save-full:hover {
+  background: var(--primary-orange-hover);
+}
+
+/* BANNER CAM KẾT GHIM XUỐNG DÁN ĐÁY CHÂN TRANG */
+.cstm-security-banner {
+  margin-top: auto;
+  background: #fff8f5;
+  border: 1px solid #ffe8e0;
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 280px;
-  max-width: 400px;
-
-  /* Hiệu ứng: trượt vào trong 0.3s, đợi 2.7s rồi tự mờ dần biến mất trong 0.3s */
-  animation:
-    toastSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
-    toastFadeOut 0.3s ease 2.7s forwards;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Phân biệt màu sắc theo loại thông báo */
-.pet-toast.success {
-  border-left: 6px solid #2ecc71;
-  color: #27ae60;
+.cstm-security-icon-box {
+  width: 34px;
+  height: 34px;
+  background: #ffebe4;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.pet-toast.error {
-  border-left: 6px solid #e74c3c;
-  color: #c0392b;
+.cstm-shield-icon {
+  width: 20px;
+  height: 20px;
 }
 
-/* Định nghĩa hiệu ứng Animation chuyển động */
-@keyframes toastSlideIn {
-  from {
-    transform: translateX(120%);
-    opacity: 0;
+.cstm-security-text h4 {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.cstm-security-text p {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.cstm-paw-bg {
+  position: absolute;
+  right: 12px;
+  bottom: -12px;
+  font-size: 45px;
+  opacity: 0.05;
+}
+
+/* ==================== CỘT 3: CỘT PHẢI ==================== */
+.cstm-sidebar-right {
+  flex: 0 0 310px;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-left: 1px solid var(--border-color);
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.cstm-verify-card {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: #fafafa;
+}
+
+.cstm-verify-icon-bg {
+  width: 54px;
+  height: 54px;
+  background: #fff3ed;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.cstm-mail-svg {
+  width: 26px;
+  height: 26px;
+}
+
+.cstm-badge-exclamation {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  background: var(--primary-orange);
+  color: white;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+.cstm-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+.cstm-card-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+
+.cstm-btn-orange-full {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--primary-orange);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cstm-btn-orange-full:hover {
+  background: var(--primary-orange-hover);
+}
+
+.cstm-card-divider {
+  width: 100%;
+  height: 1px;
+  background: #f0f0f0;
+  margin: 14px 0;
+}
+
+/* BADGE XÁC THỰC */
+.cstm-status-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cstm-status-row.unverified,
+.cstm-status-row {
+  background-color: var(--warning-bg);
+  color: var(--warning-color);
+  border: 1px solid var(--warning-border);
+}
+
+.cstm-status-row.unverified .cstm-status-dot,
+.cstm-status-dot {
+  width: 7px;
+  height: 7px;
+  background-color: var(--warning-color);
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  animation: pulseDot 2s infinite;
+}
+
+.cstm-status-row.verified {
+  background-color: var(--success-bg);
+  color: var(--success-color);
+  border: 1px solid var(--success-border);
+}
+
+.cstm-status-row.verified .cstm-status-dot {
+  background-color: var(--success-color);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  animation: none;
+}
+
+@keyframes pulseDot {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
   }
-  to {
-    transform: translateX(0);
-    opacity: 1;
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
   }
 }
 
-@keyframes toastFadeOut {
-  to {
-    transform: translateX(120%);
-    opacity: 0;
-  }
+/* WIDGET QUYỀN LỢI TÀI KHOẢN (THUẦN UI STATIC) */
+.cstm-benefits-box {
+  width: 100%;
+  margin-top: 12px;
+  background: #ffffff;
+  border: 1px dashed #ffd8cc;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+  text-align: left;
+}
+
+.benefits-title {
+  font-weight: 700;
+  color: var(--primary-orange);
+}
+
+.benefits-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-dark);
+}
+
+.benefits-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.check-icon {
+  color: #10b981;
+  font-weight: bold;
+}
+
+.cstm-support-card {
+  background: #fff8f5;
+  border: 1px solid #ffe8e0;
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cstm-support-avatar-box {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+}
+
+.cstm-support-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.cstm-support-content h4 {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 2px;
+}
+
+.cstm-support-content p {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  line-height: 1.3;
+  margin-bottom: 6px;
+}
+
+.cstm-btn-support-outline {
+  padding: 4px 10px;
+  background: #ffffff;
+  color: var(--primary-orange);
+  border: 1px solid #ffccbc;
+  border-radius: 14px;
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cstm-btn-support-outline:hover {
+  background: var(--primary-orange);
+  color: #ffffff;
 }

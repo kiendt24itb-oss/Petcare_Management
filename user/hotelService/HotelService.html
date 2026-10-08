@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pet Hotel - PetCare Premium</title>
+    <!-- Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="HotelService.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- 1. HERO BANNER SECTION -->
+      <div class="hero-banner">
+        <!-- Full background image -->
+        <img
+          src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1400&q=80"
+          alt="Pet Hotel"
+          class="hero-bg-img"
+        />
+
+        <!-- Soft gradient overlay -->
+        <div class="hero-gradient-overlay"></div>
+
+        <!-- Content overlay -->
+        <div class="banner-content">
+          <div class="hotel-icon-badge">
+            <i class="fa-solid fa-hotel"></i>
+          </div>
+          <h1 class="banner-title">Pet Hotel</h1>
+          <p class="banner-desc">
+            Dịch vụ lưu trú cao cấp, an toàn và thoải mái cho thú cưng.
+          </p>
+          <div class="banner-tags">
+            <span class="tag-item">
+              <i class="fa-solid fa-circle-check"></i> Phòng riêng sạch sẽ
+            </span>
+            <span class="tag-item">
+              <i class="fa-solid fa-circle-check"></i> Chăm sóc 24/7
+            </span>
+            <span class="tag-item">
+              <i class="fa-solid fa-circle-check"></i> Camera giám sát
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN TWO-COLUMN LAYOUT -->
+      <div class="main-layout">
+        <!-- LEFT COLUMN: ABOUT & FEATURES -->
+        <aside class="sidebar-info">
+          <div class="info-card">
+            <h2 class="sidebar-title">
+              <i class="fa-solid fa-paw icon-paw"></i> Về dịch vụ Pet Hotel
+            </h2>
+            <p class="sidebar-intro">
+              Pet Hotel tại PetCare Premium mang đến không gian lưu trú như ở
+              nhà cho thú cưng của bạn. Với đội ngũ chăm sóc tận tâm, cơ sở vật
+              chất hiện đại và quy trình an toàn chuẩn y tế, chúng tôi cam kết
+              mang lại trải nghiệm tốt nhất cho các bé.
+            </p>
+
+            <!-- 4 NỘI DUNG NẰM CHUNG TRONG 1 KHUNG MÀU BO VIỀN NHƯ ẢNH MÔ TẢ -->
+            <div class="features-list-wrapper">
+              <div class="feature-item">
+                <div class="f-icon">
+                  <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="f-text">
+                  <h4>An toàn tuyệt đối</h4>
+                  <p>
+                    Khu vực riêng biệt, khử trùng định kỳ và quy trình kiểm soát
+                    sức khỏe nghiêm ngặt.
+                  </p>
+                </div>
+              </div>
+
+              <div class="feature-item">
+                <div class="f-icon">
+                  <i class="fa-regular fa-clock"></i>
+                </div>
+                <div class="f-text">
+                  <h4>Chăm sóc 24/7</h4>
+                  <p>
+                    Đội ngũ nhân viên luôn túc trực, theo dõi và chăm sóc thú
+                    cưng 24/7.
+                  </p>
+                </div>
+              </div>
+
+              <div class="feature-item">
+                <div class="f-icon">
+                  <i class="fa-solid fa-video"></i>
+                </div>
+                <div class="f-text">
+                  <h4>Giám sát liên tục</h4>
+                  <p>
+                    Hệ thống camera 24/7, cập nhật tình trạng bé mọi lúc mọi
+                    nơi.
+                  </p>
+                </div>
+              </div>
+
+              <div class="feature-item">
+                <div class="f-icon">
+                  <i class="fa-solid fa-bowl-food"></i>
+                </div>
+                <div class="f-text">
+                  <h4>Dinh dưỡng chuẩn</h4>
+                  <p>
+                    Thức ăn chất lượng, phù hợp khẩu vị và tình trạng sức khỏe
+                    của từng bé.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="commitment-card">
+              <div class="commit-header">
+                <i class="fa-regular fa-heart icon-heart"></i>
+                <h4>Cam kết của chúng tôi</h4>
+              </div>
+              <p class="commit-desc">
+                Chúng tôi coi thú cưng của bạn như thành viên trong gia đình. Sự
+                an toàn và hạnh phúc của các bé là ưu tiên hàng đầu.
+              </p>
+              <i class="fa-solid fa-paw bg-paw-watermark"></i>
+            </div>
+          </div>
+        </aside>
+
+        <!-- RIGHT COLUMN: ROOM LIST -->
+        <section class="rooms-section">
+          <div class="rooms-container-card">
+            <div class="rooms-header">
+              <div class="rooms-title-wrapper">
+                <i class="fa-solid fa-hotel icon-hotel-header"></i>
+                <div>
+                  <h3 class="rooms-title">Danh sách phòng</h3>
+                  <p class="rooms-subtitle">
+                    Chọn phòng phù hợp cho thú cưng của bạn
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Inner Scrollable Container for Rooms -->
+            <div class="rooms-scroll-area" id="roomsGrid">
+              <!-- JS renders rooms dynamically -->
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- CTA FOOTER BANNER -->
+      <div class="cta-banner">
+        <div class="cta-left">
+          <div class="cta-icon">
+            <i class="fa-regular fa-calendar-check"></i>
+          </div>
+          <div class="cta-text">
+            <h3>Sẵn sàng đặt lịch cho bé yêu?</h3>
+            <p>Đặt lịch ngay để giữ chỗ và nhận ưu đãi hấp dẫn</p>
+          </div>
+        </div>
+        <div class="cta-actions">
+          <button class="btn btn-secondary">
+            <i class="fa-regular fa-comment-dots"></i> Tư vấn ngay
+          </button>
+          <button class="btn btn-primary btn-booking">
+            <i class="fa-regular fa-calendar-plus"></i> Đặt lịch ngay
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="HotelService.js"></script>
+  </body>
+</html>

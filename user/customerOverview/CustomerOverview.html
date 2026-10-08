@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PetCare - Tổng quan khách hàng</title>
+    <!-- Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="CustomerOverview.css" />
+  </head>
+  <body>
+    <div class="overview-container">
+      <!-- Welcome Banner Section -->
+      <!-- Welcome / Hero Banner Section -->
+      <div class="hero-banner">
+        <!-- Ảnh banner căn phải -->
+        <img
+          src="../../uploads/BannerSV.png"
+          alt="Pet Banner"
+          class="banner-img"
+        />
+
+        <!-- Nội dung đè lên phía trái -->
+        <div class="banner-content">
+          <div class="badge-subtitle">
+            <span id="greeting-text">Chào mừng trở lại!</span>
+            <i class="fa-solid fa-heart icon-heart"></i>
+          </div>
+          <h1 class="banner-title" id="user-fullname">Dương Trung Kiên</h1>
+          <p class="banner-desc">
+            Cùng PetCare chăm sóc bé yêu<br />
+            mỗi ngày nhé!
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Grid (Đã bỏ mục Ưu đãi -> 3 cột) -->
+      <div class="metrics-grid">
+        <!-- Metric 1: Thú cưng -->
+        <div class="metric-card">
+          <div class="metric-icon icon-orange">
+            <i class="fa-solid fa-paw"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Thú cưng</span>
+            <div class="metric-value" id="pets-count">0</div>
+            <span class="metric-sub">Bé cưng của bạn</span>
+          </div>
+        </div>
+
+        <!-- Metric 2: Lịch hẹn sắp tới -->
+        <div class="metric-card">
+          <div class="metric-icon icon-purple">
+            <i class="fa-regular fa-calendar-check"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Lịch hẹn sắp tới</span>
+            <div class="metric-value" id="upcoming-appointments-count">0</div>
+            <a href="#" class="metric-link">Xem lịch hẹn</a>
+          </div>
+        </div>
+
+        <!-- Metric 3: Dịch vụ đã dùng -->
+        <div class="metric-card">
+          <div class="metric-icon icon-green">
+            <i class="fa-solid fa-heart-pulse"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Dịch vụ đã dùng</span>
+            <div class="metric-value" id="used-services-count">0</div>
+            <a href="#" class="metric-link">Xem lịch sử</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Booking CTA Banner -->
+      <div class="booking-cta-banner">
+        <div class="cta-left">
+          <div class="cta-icon">
+            <i class="fa-regular fa-calendar-plus"></i>
+          </div>
+          <div class="cta-info">
+            <h3>Đặt lịch dễ dàng</h3>
+            <p>Đặt lịch dịch vụ nhanh chóng và quản lý lịch hẹn của bé yêu.</p>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-booking">
+          Đặt lịch ngay <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <!-- Main Content 2 Cột: Thông báo & Bé cưng -->
+      <div class="main-grid">
+        <!-- Cột trái: Thông báo mới -->
+        <div class="card notifications-card">
+          <div class="card-header">
+            <h3>
+              <i class="fa-regular fa-bell icon-header"></i> Thông báo mới
+            </h3>
+            <a href="#" class="header-link">Xem tất cả</a>
+          </div>
+          <div class="notifications-list" id="notifications-container">
+            <!-- Render động từ JS -->
+          </div>
+        </div>
+
+        <!-- Cột phải: Bé cưng của bạn -->
+        <div class="card pets-card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-paw icon-header"></i> Bé cưng của bạn</h3>
+            <a href="#" class="header-link">Xem tất cả</a>
+          </div>
+          <div class="pets-grid" id="pets-container">
+            <!-- Render động từ JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="CustomerOverview.js"></script>
+  </body>
+</html>

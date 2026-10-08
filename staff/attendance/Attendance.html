@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chấm Công Nhân Viên - PetCare</title>
+    <title>Chấm Công & Lịch Làm Việc - PetCare</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -11,63 +11,373 @@
     <link rel="stylesheet" href="Attendance.css" />
   </head>
   <body>
-    <div id="pet-toast-container"></div>
-
     <div class="attendance-dashboard">
-      <div class="attendance-card action-box">
-        <div class="clock-section">
-          <div class="calendar-badge">
-            <i class="fa-regular fa-calendar-days"></i>
-            <span id="current-date">Thứ Hai, 15/06/2026</span>
+      <!-- HÀNG TRÊN: 3 KHỐI LỚN -->
+      <div class="top-row">
+        <!-- KHỐI 1: NHẬP MÃ CHECKIN (TRUNG TÂM NỔI BẬT) -->
+        <div class="card checkin-card highlight-card">
+          <div class="card-header-flex">
+            <div class="card-title glow-title">
+              <i class="fa-solid fa-key title-icon"></i>
+              <span>Nhập mã checkin</span>
+            </div>
+            <div class="shield-badge">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
           </div>
-          <div id="digital-clock">00:00:00</div>
-          <p class="clock-tip">
-            Vui lòng kiểm tra kỹ thời gian trước khi bấm ca
+          <p class="card-subtitle">
+            Nhập mã 6 số được cung cấp để thực hiện điểm danh
           </p>
+
+          <!-- Ô nhập PIN 3D cá tính -->
+          <div class="pin-inputs" id="pinInputs">
+            <input
+              type="text"
+              maxlength="1"
+              class="pin-box"
+              autofocus
+              placeholder="*"
+            />
+            <input type="text" maxlength="1" class="pin-box" placeholder="*" />
+            <input type="text" maxlength="1" class="pin-box" placeholder="*" />
+            <input type="text" maxlength="1" class="pin-box" placeholder="*" />
+            <input type="text" maxlength="1" class="pin-box" placeholder="*" />
+            <input type="text" maxlength="1" class="pin-box" placeholder="*" />
+          </div>
+
+          <!-- THÔNG BÁO XÁC NHẬN - MÀU SẮC RỰC RỠ BẮT MẮT -->
+          <div class="success-alert success-state" id="checkinAlert">
+            <div class="alert-left">
+              <div class="check-circle" id="alertIcon">
+                <i class="fa-solid fa-check"></i>
+              </div>
+              <div class="alert-text">
+                <strong id="alertTitle">Hệ thống xác nhận</strong>
+                <p id="alertMsg">Điểm danh thành công!</p>
+              </div>
+            </div>
+            <span class="alert-time" id="alertTime">08:15:32</span>
+          </div>
         </div>
 
-        <div class="status-banner" id="status-banner">
-          <i class="fa-solid fa-circle-info"></i> Trạng thái hôm nay:
-          <b>Chưa ghi nhận ca làm</b>
+        <!-- KHỐI 2: ĐỒNG HỒ TRÊN & BANNER ẢNH CÚN DƯỚI -->
+        <div class="card clock-banner-card">
+          <div class="clock-section">
+            <span class="clock-label">Thời gian hiện tại</span>
+            <h1 class="digital-clock" id="liveClock">08:15:32</h1>
+            <p class="date-display" id="liveDate">Thứ Ba, 22/07/2025</p>
+          </div>
+
+          <div class="banner-image-wrapper">
+            <img
+              src="../../uploads/timer.png"
+              alt="Pet Banner"
+              class="pet-work-img"
+            />
+            <div class="banner-top-blur"></div>
+
+            <div class="status-chip">
+              <span class="dot-green"></span> Đang trong ca làm
+            </div>
+          </div>
         </div>
 
-        <div class="attendance-btn-group">
-          <button id="btn-checkin" class="btn-attendance checkin">
-            <i class="fa-solid fa-right-to-bracket"></i>
-            <span>Bắt Đầu Ca (Check-in)</span>
-          </button>
-          <button id="btn-checkout" class="btn-attendance checkout" disabled>
-            <i class="fa-solid fa-right-from-bracket"></i>
-            <span>Kết Thúc Ca (Check-out)</span>
-          </button>
+        <!-- KHỐI 3: TỔNG QUAN THÁNG -->
+        <div class="card overview-card">
+          <h3 class="overview-title">
+            <i class="fa-solid fa-chart-line title-icon"></i> Tổng quan tháng
+            07/2025
+          </h3>
+          <div class="stats-grid">
+            <div class="stat-item stat-blue">
+              <div class="stat-icon icon-blue">
+                <i class="fa-regular fa-calendar-check"></i>
+              </div>
+              <span class="stat-label">Ngày làm</span>
+              <div class="stat-value">18 <small>ngày</small></div>
+            </div>
+
+            <div class="stat-item stat-green">
+              <div class="stat-icon icon-green">
+                <i class="fa-regular fa-clock"></i>
+              </div>
+              <span class="stat-label">Tổng giờ làm</span>
+              <div class="stat-value">152.5 <small>giờ</small></div>
+            </div>
+
+            <div class="stat-item stat-purple">
+              <div class="stat-icon icon-purple">
+                <i class="fa-regular fa-moon"></i>
+              </div>
+              <span class="stat-label">Ngày nghỉ</span>
+              <div class="stat-value">4 <small>ngày</small></div>
+            </div>
+
+            <div class="stat-item stat-orange">
+              <div class="stat-icon icon-orange">
+                <i class="fa-solid fa-person-walking-arrow-loop-left"></i>
+              </div>
+              <span class="stat-label">Đi muộn</span>
+              <div class="stat-value">3 <small>lần</small></div>
+            </div>
+
+            <div class="stat-item stat-emerald">
+              <div class="stat-icon icon-emerald">
+                <i class="fa-regular fa-circle-check"></i>
+              </div>
+              <span class="stat-label">Về sớm</span>
+              <div class="stat-value">1 <small>lần</small></div>
+            </div>
+
+            <div class="stat-item stat-indigo">
+              <div class="stat-icon icon-indigo">
+                <i class="fa-solid fa-mug-hot"></i>
+              </div>
+              <span class="stat-label">Tổng ca làm</span>
+              <div class="stat-value">22 <small>ca</small></div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="attendance-card history-box">
-        <div class="history-header">
-          <h3>
-            <i class="fa-solid fa-clock-rotate-left"></i> Nhật Ký Chấm Công
-            Tháng Này
+      <!-- HÀNG DƯỚI: LỊCH VÀ CHI TIẾT NGÀY -->
+      <div class="bottom-row">
+        <!-- KHỐI LỊCH NHẬT KÝ THÁNG -->
+        <div class="card calendar-card">
+          <h3 class="card-section-title">
+            <i class="fa-regular fa-calendar-days title-icon"></i> Nhật ký chấm
+            công tháng 07/2025
           </h3>
-          <span class="total-days-badge">Tháng 06/2026</span>
+
+          <div class="calendar-grid">
+            <div class="weekday-header">T2</div>
+            <div class="weekday-header">T3</div>
+            <div class="weekday-header">T4</div>
+            <div class="weekday-header">T5</div>
+            <div class="weekday-header">T6</div>
+            <div class="weekday-header">T7</div>
+            <div class="weekday-header Sunday">CN</div>
+
+            <div class="cal-day other-month">
+              <span class="day-num">30</span
+              ><span class="time-text">08:01</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">1</span
+              ><span class="time-text dot-green-text">08:02</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">2</span
+              ><span class="time-text dot-green-text">08:05</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">3</span
+              ><span class="time-text dot-green-text">08:01</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">4</span
+              ><span class="time-text dot-orange-text">08:16</span>
+            </div>
+            <div class="cal-day off-day">
+              <span class="day-num Sunday">5</span
+              ><span class="off-text">Nghỉ</span>
+            </div>
+            <div class="cal-day off-day">
+              <span class="day-num Sunday">6</span
+              ><span class="off-text">Nghỉ</span>
+            </div>
+
+            <div class="cal-day">
+              <span class="day-num">7</span
+              ><span class="time-text dot-green-text">08:03</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">8</span
+              ><span class="time-text dot-green-text">08:04</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">9</span
+              ><span class="time-text dot-green-text">08:10</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">10</span
+              ><span class="time-text dot-green-text">08:06</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">11</span
+              ><span class="time-text dot-green-text">08:02</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">12</span
+              ><span class="time-text dot-orange-text">08:20</span>
+            </div>
+            <div class="cal-day off-day">
+              <span class="day-num Sunday">13</span
+              ><span class="off-text">Nghỉ</span>
+            </div>
+
+            <div class="cal-day">
+              <span class="day-num">14</span
+              ><span class="time-text dot-green-text">08:01</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">15</span
+              ><span class="time-text dot-green-text">08:03</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">16</span
+              ><span class="time-text dot-green-text">08:05</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">17</span
+              ><span class="time-text dot-green-text">08:02</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">18</span
+              ><span class="time-text dot-orange-text">08:15</span>
+            </div>
+            <div class="cal-day off-day">
+              <span class="day-num Sunday">19</span
+              ><span class="off-text">Nghỉ</span>
+            </div>
+            <div class="cal-day off-day">
+              <span class="day-num Sunday">20</span
+              ><span class="off-text">Nghỉ</span>
+            </div>
+
+            <div class="cal-day">
+              <span class="day-num">21</span
+              ><span class="time-text dot-green-text">08:02</span>
+            </div>
+            <div class="cal-day selected-day">
+              <span class="day-num Sunday">22</span
+              ><span class="time-text dot-orange-text">08:15</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">23</span><span class="time-text">--</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">24</span><span class="time-text">--</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">25</span><span class="time-text">--</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">26</span><span class="time-text">--</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">27</span><span class="time-text">--</span>
+            </div>
+
+            <div class="cal-day">
+              <span class="day-num">28</span><span class="time-text">--</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">29</span><span class="time-text">--</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">30</span><span class="time-text">--</span>
+            </div>
+            <div class="cal-day">
+              <span class="day-num">31</span><span class="time-text">--</span>
+            </div>
+            <div class="cal-day other-month">
+              <span class="day-num">1</span><span class="time-text">--</span>
+            </div>
+            <div class="cal-day other-month">
+              <span class="day-num">2</span><span class="time-text">--</span>
+            </div>
+            <div class="cal-day other-month">
+              <span class="day-num">3</span><span class="time-text">--</span>
+            </div>
+          </div>
         </div>
 
-        <div class="table-responsive">
-          <table class="attendance-table">
-            <thead>
-              <tr>
-                <th>Ngày</th>
-                <th>Giờ Vào</th>
-                <th>Giờ Ra</th>
-                <th>Tổng Giờ</th>
-                <th>Trạng Thái</th>
-              </tr>
-            </thead>
-            <tbody id="attendance-history-rows"></tbody>
-          </table>
+        <!-- KHỐI CHI TIẾT NGÀY -->
+        <div class="card day-detail-card">
+          <div class="day-detail-header">
+            <h3 id="selectedDateTitle">
+              <i class="fa-solid fa-list-check title-icon"></i> Chi tiết ngày
+              22/07/2025
+            </h3>
+            <span class="status-badge-working">Đang làm</span>
+          </div>
+
+          <div class="detail-rows">
+            <div class="detail-row">
+              <span class="detail-label"
+                ><i class="fa-regular fa-square-check icon-green-text"></i>
+                Check-in</span
+              >
+              <span class="detail-val highlight-time" id="detailCheckin"
+                >08:15:32</span
+              >
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label"
+                ><i class="fa-regular fa-square-check icon-gray-text"></i>
+                Check-out</span
+              >
+              <span class="detail-val text-muted" id="detailCheckout"
+                >--:--:--</span
+              >
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label"
+                ><i class="fa-regular fa-clock icon-blue-text"></i> Tổng giờ
+                làm</span
+              >
+              <span class="detail-val" id="detailWorkHours">-- giờ</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label"
+                ><i class="fa-regular fa-calendar-days icon-orange-text"></i> Ca
+                làm</span
+              >
+              <span class="detail-val">Sáng</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label"
+                ><i class="fa-regular fa-heart icon-pink-text"></i> Trạng
+                thái</span
+              >
+              <span class="status-badge-working">Đang làm</span>
+            </div>
+          </div>
+
+          <div class="legend-section">
+            <div class="legend-title">
+              Chú thích <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="legend-grid">
+              <div class="legend-item">
+                <span class="legend-dot green"></span> Đi làm đúng giờ
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot orange"></span> Đi muộn
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot purple"></span> Về sớm
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot red"></span> Nghỉ
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot gray"></span> Chưa chấm công
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
+    <button class="floating-chat-btn">
+      <i class="fa-solid fa-comments"></i>
+    </button>
 
     <script src="Attendance.js"></script>
   </body>

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Thông Tin Nhân Viên & Lương Thưởng - PetCare</title>
+    <title>Hồ Sơ Nhân Viên - PetCare Management</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -22,15 +22,16 @@
         <input type="hidden" id="rawStaffId" />
         <input type="hidden" id="positionId" />
 
-        <div class="cstm-sidebar-profile">
+        <!-- ==================== CỘT 1: SIDEBAR TRÁI ==================== -->
+        <div class="cstm-sidebar-left">
           <div class="cstm-avatar-container">
             <img
-              src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZjlhOWUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZWNmZWYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0idXJsKCNnKSIvPldjdXN0b21lcjxjaXJjbGUgY3g9IjUwIiBjeT0iNDIiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTI1LDc1IEMyNSw1OCA3NSw1OCA3NSw3NSIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg=="
+              src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM0ZWFmN2IiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNhM2UxYTUiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iNDIiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTI1LDc1IEMyNSw1OCA3NSw1OCA3NSw3NSIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg=="
               alt="Staff Avatar"
               id="staffAvatar"
               class="cstm-avatar-img"
             />
-            <label class="cstm-upload-badge">
+            <label class="cstm-upload-badge" title="Thay đổi ảnh đại diện">
               📷
               <input type="file" id="inputAvatar" accept="image/*" />
             </label>
@@ -45,147 +46,248 @@
 
           <p class="cstm-profile-tip">
             Hình ảnh đại diện rõ ràng giúp khách hàng tin tưởng và dễ dàng nhận
-            diện bạn tại khu vực làm việc.
+            diện bạn tại cửa hàng.
           </p>
         </div>
 
-        <div class="cstm-main-form">
-          <h2 class="cstm-section-title">
-            <i class="fa-solid fa-id-card"></i> Hồ Sơ Cá Nhân Nhân Viên
-          </h2>
-
-          <div class="cstm-grid-fields">
-            <div class="cstm-form-group">
-              <label class="cstm-label">Mã số nhân viên (Staff Code)</label>
-              <input
-                type="text"
-                id="staffCode"
-                class="cstm-input cstm-input-disabled"
-                disabled
-                placeholder="Chờ kích hoạt..."
-              />
-            </div>
-
-            <div class="cstm-form-group">
-              <label class="cstm-label">Chức Vụ Hệ Thống</label>
-              <input
-                type="text"
-                id="positionName"
-                class="cstm-input cstm-input-disabled"
-                disabled
-                placeholder="Chờ Admin cấu hình..."
-              />
-            </div>
-
-            <div class="cstm-form-group">
-              <label class="cstm-label">Họ và Tên</label>
-              <input
-                type="text"
-                name="fullName"
-                id="fullName"
-                class="cstm-input"
-                required
-              />
-            </div>
-
-            <div class="cstm-form-group">
-              <label class="cstm-label">Số CCCD (12 số)</label>
-              <input
-                type="text"
-                name="cccd"
-                id="cccd"
-                class="cstm-input"
-                maxlength="12"
-                required
-              />
-            </div>
-
-            <div class="cstm-form-group">
-              <label class="cstm-label">Số Điện Thoại</label>
-              <input
-                type="tel"
-                name="phone"
-                id="phone"
-                class="cstm-input"
-                required
-              />
-            </div>
-
-            <div class="cstm-form-group">
-              <label class="cstm-label">Giới Tính</label>
-              <div class="cstm-select-wrapper">
-                <select name="gender" id="gender" class="cstm-select" required>
-                  <option value="MALE">Nam</option>
-                  <option value="FEMALE">Nữ</option>
-                  <option value="OTHER">Khác</option>
-                </select>
+        <!-- ==================== CỘT 2: FORM CHÍNH & LƯƠNG THƯỞNG ==================== -->
+        <div class="cstm-main-content">
+          <!-- KHỐI FORM TRÊN: DỒN LÊN SÁT NHAU -->
+          <div class="cstm-top-form-section">
+            <div class="cstm-header-title">
+              <div class="cstm-title-icon">
+                <i class="fa-solid fa-id-card"></i>
+              </div>
+              <div>
+                <h2 class="cstm-section-title">Hồ Sơ Nhân Viên</h2>
+                <p class="cstm-section-subtitle">
+                  Cập nhật thông tin cá nhân và hồ sơ công tác
+                </p>
               </div>
             </div>
 
-            <div class="cstm-form-group cstm-col-2">
-              <label class="cstm-label">Địa Chỉ Email Liên Hệ</label>
-              <input
-                type="email"
-                name="email"
-                id="email"
-                class="cstm-input"
-                required
+            <div class="cstm-form-body">
+              <!-- Mã NV & Chức vụ -->
+              <div class="cstm-grid-2col">
+                <div class="cstm-form-group">
+                  <label class="cstm-label">Mã Số Nhân Viên</label>
+                  <input
+                    type="text"
+                    id="staffCode"
+                    class="cstm-input cstm-input-disabled"
+                    disabled
+                    placeholder="Chờ kích hoạt..."
+                  />
+                </div>
+                <div class="cstm-form-group">
+                  <label class="cstm-label">Chức Vụ Hệ Thống</label>
+                  <input
+                    type="text"
+                    id="positionName"
+                    class="cstm-input cstm-input-disabled"
+                    disabled
+                    placeholder="Chờ Admin cấu hình..."
+                  />
+                </div>
+              </div>
+
+              <!-- Họ tên & Số CCCD -->
+              <div class="cstm-grid-2col">
+                <div class="cstm-form-group">
+                  <label class="cstm-label">Họ và Tên</label>
+                  <input
+                    type="text"
+                    name="fullName"
+                    id="fullName"
+                    placeholder="Nhập họ và tên..."
+                    class="cstm-input"
+                    required
+                  />
+                </div>
+                <div class="cstm-form-group">
+                  <label class="cstm-label">Số CCCD (12 số)</label>
+                  <input
+                    type="text"
+                    name="citizenId"
+                    id="citizenId"
+                    placeholder="Nhập 12 số CCCD..."
+                    maxlength="12"
+                    class="cstm-input"
+                    required
+                  />
+                </div>
+              </div>
+
+              <!-- SĐT & Giới tính -->
+              <div class="cstm-grid-2col">
+                <div class="cstm-form-group">
+                  <label class="cstm-label">Số Điện Thoại</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    id="phone"
+                    placeholder="Nhập số điện thoại..."
+                    class="cstm-input"
+                    required
+                  />
+                </div>
+                <div class="cstm-form-group">
+                  <label class="cstm-label">Giới Tính</label>
+                  <div class="cstm-select-wrapper">
+                    <select
+                      name="gender"
+                      id="gender"
+                      class="cstm-select"
+                      required
+                    >
+                      <option value="MALE">Nam</option>
+                      <option value="FEMALE">Nữ</option>
+                      <option value="OTHER">Khác</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Email & Địa chỉ -->
+              <div class="cstm-grid-2col">
+                <div class="cstm-form-group">
+                  <label class="cstm-label">Địa Chỉ Email Liên Hệ</label>
+                  <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    placeholder="Nhập email làm việc..."
+                    class="cstm-input"
+                    required
+                  />
+                </div>
+                <div class="cstm-form-group">
+                  <label class="cstm-label">Địa Chỉ Thường Trú</label>
+                  <input
+                    type="text"
+                    name="address"
+                    id="address"
+                    placeholder="Nhập địa chỉ ở hiện tại..."
+                    class="cstm-input"
+                    required
+                  />
+                </div>
+              </div>
+
+              <!-- Nút Lưu Thay Đổi Ngay Dưới Các Input -->
+              <button type="submit" id="btnSave" class="cstm-btn-save-full">
+                💾 Lưu Thay Đổi
+              </button>
+            </div>
+          </div>
+
+          <!-- KHỐI LƯƠNG DƯỚI: TỰ ĐỘNG CỐ ĐỊNH GHIM XUỐNG ĐÁY -->
+          <div class="cstm-salary-section">
+            <div class="cstm-header-title salary-header">
+              <div class="cstm-title-icon green">
+                <i class="fa-solid fa-wallet"></i>
+              </div>
+              <div>
+                <h3 class="cstm-section-title">
+                  Bảng Lương & Thưởng Tháng Này
+                </h3>
+                <p class="cstm-section-subtitle">
+                  Cập nhật theo dữ liệu chấm công mới nhất
+                </p>
+              </div>
+            </div>
+
+            <div class="salary-dashboard-grid">
+              <div class="salary-card">
+                <span class="sal-title">Lương cơ bản / ca</span>
+                <span class="sal-value" id="sal-base">0đ</span>
+              </div>
+              <div class="salary-card bonus">
+                <span class="sal-title">Thưởng hiệu suất (KPI)</span>
+                <span class="sal-value" id="sal-bonus">0đ</span>
+              </div>
+              <div class="salary-card net-salary">
+                <span class="sal-title">Dự kiến thực nhận 💰</span>
+                <span class="sal-value" id="sal-total">0đ</span>
+              </div>
+            </div>
+
+            <div class="cstm-security-banner">
+              <div class="cstm-security-icon-box">
+                <i class="fa-solid fa-circle-info"></i>
+              </div>
+              <div class="cstm-security-text">
+                <h4>Ghi chú từ Bộ Phận Nhân Sự</h4>
+                <p>
+                  Lương thực nhận được tính toán dựa trên số ca làm thực tế và
+                  cấu hình thưởng từ Admin.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== CỘT 3: CỘT PHẢI ==================== -->
+        <div class="cstm-sidebar-right">
+          <div class="cstm-verify-card">
+            <div class="cstm-verify-icon-bg">
+              <i class="fa-solid fa-user-check"></i>
+            </div>
+
+            <h3 class="cstm-card-title">Trạng Thái Làm Việc</h3>
+            <p class="cstm-card-desc">
+              Tài khoản đang hoạt động bình thường trên hệ thống.
+            </p>
+
+            <div class="cstm-status-row verified">
+              <span class="cstm-status-dot"></span>
+              <span class="cstm-status-text">Đang trong ca làm</span>
+            </div>
+
+            <div class="cstm-attendance-widget">
+              <div class="cstm-shift-box">
+                <span class="cstm-shift-label">Ca trực hôm nay:</span>
+                <span class="cstm-shift-val">Ca Sáng (08:00 - 12:00)</span>
+              </div>
+              <div class="cstm-time-logs">
+                <div class="time-log-item">
+                  <span class="time-label">Vào ca:</span>
+                  <span class="time-val">07:55 AM</span>
+                </div>
+                <div class="time-log-item">
+                  <span class="time-label">Ra ca:</span>
+                  <span class="time-val">--:--</span>
+                </div>
+              </div>
+              <button type="button" class="cstm-btn-checkin">
+                ⏱️ Điểm Danh Ngay
+              </button>
+            </div>
+          </div>
+
+          <div class="cstm-support-card">
+            <div class="cstm-support-avatar-box">
+              <img
+                src="../../uploads/support.png"
+                alt="PetCare Support"
+                class="cstm-support-img"
               />
             </div>
-
-            <div class="cstm-form-group cstm-col-2">
-              <label class="cstm-label">Địa Chỉ Thường Trú</label>
-              <input
-                type="text"
-                name="address"
-                id="address"
-                class="cstm-input"
-                required
-              />
+            <div class="cstm-support-content">
+              <h4>Hỗ trợ Nhân viên</h4>
+              <p>
+                Gặp sự cố hệ thống hoặc thắc mắc ca trực? Đội ngũ HR / IT sẵn
+                sàng giúp bạn!
+              </p>
+              <button
+                type="button"
+                id="btnSupportChat"
+                class="cstm-btn-support-outline"
+              >
+                🎧 Liên hệ HR / IT
+              </button>
             </div>
           </div>
-
-          <div class="cstm-actions-bar">
-            <button
-              type="button"
-              id="btnReset"
-              class="cstm-btn cstm-btn-secondary"
-            >
-              Đặt Lại
-            </button>
-            <button
-              type="submit"
-              id="btnSave"
-              class="cstm-btn cstm-btn-primary"
-            >
-              Lưu Thay Đổi
-            </button>
-          </div>
-
-          <h2 class="cstm-section-title section-salary">
-            <i class="fa-solid fa-wallet"></i> Bảng Lương & Thưởng Tháng Này
-          </h2>
-
-          <div class="salary-dashboard-grid unique-3-cols">
-            <div class="salary-card">
-              <span class="sal-title">Lương cơ bản</span>
-              <span class="sal-value" id="sal-base">0đ</span>
-            </div>
-            <div class="salary-card bonus">
-              <span class="sal-title">Tiền thưởng (KPI)</span>
-              <span class="sal-value" id="sal-bonus">0đ</span>
-            </div>
-            <div class="salary-card net-salary">
-              <span class="sal-title">Thực nhận dự kiến 💰</span>
-              <span class="sal-value" id="sal-total">0đ</span>
-            </div>
-          </div>
-
-          <p class="salary-note">
-            <i class="fa-solid fa-circle-info"></i> Dữ liệu lương thưởng được
-            tính toán dựa trên cấu hình chức vụ từ bộ phận Admin. Mọi thắc mắc
-            xin vui lòng liên hệ quản lý.
-          </p>
         </div>
       </form>
     </div>

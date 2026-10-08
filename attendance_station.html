@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PetCare Premium - Attendance Station</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="attendance_station.css" />
+  </head>
+  <body>
+    <div class="kiosk-bg-grid"></div>
+    <div class="kiosk-ambient-glow glow-1"></div>
+    <div class="kiosk-ambient-glow glow-2"></div>
+    <div class="kiosk-watermark-text">PETCARE<br />PREMIUM</div>
+
+    <div class="kiosk-master-container">
+      <div class="workspace-column column-left">
+        <div class="kiosk-glass-card digital-clock-card">
+          <div class="clock-time-display" id="kioskLiveClock">00:00:00</div>
+          <div class="clock-date-display" id="kioskLiveDate">
+            Thứ ---, --/--/----
+          </div>
+        </div>
+
+        <div class="kiosk-glass-card qr-vault-card">
+          <div class="qr-scanner-wrapper">
+            <div class="laser-scanner-line"></div>
+            <div class="qr-render-zone">
+              <img id="qrTargetImage" src="" alt="Secure Check-in QR" />
+
+              <div id="expiredScreenOverlay" class="qr-expired-overlay">
+                <div class="expired-msg-content">
+                  <div class="lock-pulse-icon">
+                    <svg
+                      viewBox="0 0 448 512"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M400 224h-24v-64C376 71.6 304.4 0 216 0S56 71.6 56 160v64H32c-17.7 0-32 14.3-32 32v224c0 17.7 14.3 32 32 32h368c17.7 0 32-14.3 32-32V256c0-17.7-14.3-32-32-32zm-152 144c0 13.3-10.7 24-24 24s-24-10.7-24-24v-48c0-13.3 10.7-24 24-24s24 10.7 24 24v48zm72-144H128v-64c0-48.5 39.5-88 88-88s88 39.5 88 88v64z"
+                      />
+                    </svg>
+                  </div>
+                  <h4>MÃ QR HẾT HẠN</h4>
+                  <p>Vui lòng cập nhật mã mới để tiếp tục điểm danh.</p>
+                </div>
+              </div>
+
+              <div id="skeletonLoadingFrame" class="qr-skeleton-loader">
+                <div class="skeleton-glow-square"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fallback-code-container">
+            <div class="code-label">MÃ CHECK-IN NHẬP WEB</div>
+            <div class="code-number-display" id="fallbackNumericalCode">
+              ------
+            </div>
+          </div>
+
+          <div class="countdown-progress-section">
+            <div class="progress-bar-track">
+              <div
+                id="countdownProgressBarFill"
+                class="progress-bar-fill"
+              ></div>
+            </div>
+            <div class="countdown-text-legend">
+              Mã tự hủy sau: <span id="numericalTimerSeconds">60</span> giây
+            </div>
+          </div>
+
+          <button id="btnActionRefreshQR" class="btn-kiosk-refresh">
+            <svg
+              class="refresh-svg-icon"
+              viewBox="0 0 512 512"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M370.7 133.3C339.4 104 297.9 87.7 252 87.7c-94.7 0-172.1 73.9-178.6 167H22.1C28.7 121.4 130 17.7 252 17.7c65.2 0 124.3 24.1 169.6 63.6l49.4-49.4v144H327l43.7-43.6zM141.3 378.7c31.3 29.3 72.8 45.6 118.7 45.6 94.7 0 172.1-73.9 178.6-167h51.3c-6.6 132.6-107.9 236.3-229.9 236.3-65.2 0-124.3-24.1-169.6-63.6L41 479V335h144l-43.7 43.7z"
+              />
+            </svg>
+            <span>CẬP NHẬT MÃ MỚI</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="workspace-column column-right">
+        <header class="kiosk-header">
+          <div class="header-left">
+            <div class="station-brand">🐾 PetCare Premium</div>
+            <p class="station-subtitle">
+              Hệ thống xác thực ca làm việc thời gian thực
+            </p>
+          </div>
+          <div class="header-right">
+            <div class="status-indicator-badge">
+              <span class="pulse-dot-green"></span>
+              <span class="status-text">ONLINE</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="scrollable-body">
+          <div class="kiosk-stats-quad-grid">
+            <div class="kiosk-glass-card mini-stat-card">
+              <div class="stat-icon-wrapper color-total">👥</div>
+              <div class="stat-info-text">
+                <div class="stat-value">35</div>
+                <div class="stat-label">Tổng nhân viên</div>
+              </div>
+            </div>
+            <div class="kiosk-glass-card mini-stat-card">
+              <div class="stat-icon-wrapper color-checked">🟢</div>
+              <div class="stat-info-text">
+                <div class="stat-value">18</div>
+                <div class="stat-label">Đã Check-in</div>
+              </div>
+            </div>
+            <div class="kiosk-glass-card mini-stat-card">
+              <div class="stat-icon-wrapper color-missing">🔴</div>
+              <div class="stat-info-text">
+                <div class="stat-value">17</div>
+                <div class="stat-label">Chưa Check-in</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="kiosk-glass-card recent-activity-card">
+            <h3 class="panel-section-title">⏱️ Hoạt động điểm danh gần đây</h3>
+            <div class="activity-feed-list" id="kioskActivityFeed"></div>
+          </div>
+
+          <div class="kiosk-glass-card system-status-grid-card">
+            <div class="status-node-item">
+              <span class="node-label">API ENDPOINT</span>
+              <span class="node-badge badge-green">ONLINE</span>
+            </div>
+            <div class="status-node-item">
+              <span class="node-label">BACKEND GATEWAY</span>
+              <span class="node-badge badge-green">CONNECTED</span>
+            </div>
+            <div class="status-node-item">
+              <span class="node-label">SECURITY SESSION</span>
+              <span class="node-badge badge-orange">ACTIVE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="attendance_station.js"></script>
+  </body>
+</html>

@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Giám sát Hoạt động Vận hành Real-time - PetCare UI</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="OperationsMonitor.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- HEADER CỐ ĐỊNH PHÍA TRÊN -->
+      <header class="main-header">
+        <div class="header-brand">
+          <div class="brand-icon">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+          <div>
+            <h2 class="brand-title">Giám sát Hoạt động Vận hành Real-time</h2>
+            <p>
+              Theo dõi luồng công việc, trạng thái phòng & nhật ký hệ thống trực
+              tiếp
+            </p>
+          </div>
+        </div>
+
+        <!-- ĐỒNG HỒ VẬN HÀNH THIẾT KẾ MỚI ĐẲNG CẤP -->
+        <div class="modern-clock-card">
+          <div class="clock-icon-badge">
+            <i class="fa-regular fa-clock"></i>
+          </div>
+          <div class="clock-content">
+            <div class="clock-time-wrapper">
+              <span id="liveClock">00:00:00</span>
+              <span class="live-pill">
+                <span class="pulse-dot"></span> LIVE
+              </span>
+            </div>
+            <div id="liveDate" class="clock-date-text">Thứ ..., --/--/2026</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- THẺ THỐNG KÊ TỔNG QUAN (KPIs) LÊN MÀU SẮC PHONG CÁCH TƯƠI SÁNG -->
+      <section class="stats-overview">
+        <div class="kpi-card total">
+          <div class="kpi-icon"><i class="fa-solid fa-calendar-check"></i></div>
+          <div class="kpi-data">
+            <span class="title">Tổng ca tiếp nhận</span>
+            <div class="number-group">
+              <span class="value" id="stat-total">38</span>
+              <span class="unit">Lượt đặt</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-card waiting">
+          <div class="kpi-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+          <div class="kpi-data">
+            <span class="title">Đang chờ tiếp nhận</span>
+            <div class="number-group">
+              <span class="value" id="stat-waiting">8</span>
+              <span class="unit">Khách</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-card processing">
+          <div class="kpi-icon">
+            <i class="fa-solid fa-arrows-spin fa-spin"></i>
+          </div>
+          <div class="kpi-data">
+            <span class="title">Đang thực hiện</span>
+            <div class="number-group">
+              <span class="value" id="stat-processing">14</span>
+              <span class="unit">Ca dịch vụ</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-card capacity">
+          <div class="kpi-icon">
+            <i class="fa-solid fa-building-circle-check"></i>
+          </div>
+          <div class="kpi-data">
+            <span class="title">Công suất phòng</span>
+            <div class="number-group">
+              <span class="value" id="stat-capacity">78%</span>
+              <span class="unit">18/23 Phòng</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BỐ CỤC CHÍNH 2 CỘT -->
+      <main class="dashboard-body">
+        <!-- CỘT TRÁI: BẢNG LỊCH ĐẶT VẬN HÀNH -->
+        <section class="table-container">
+          <div class="table-header-title">
+            <h3 class="section-title">Danh sách lịch đặt vận hành</h3>
+          </div>
+
+          <div class="table-toolbar">
+            <div class="filter-box">
+              <label class="filter-label">Trạng thái ca:</label>
+              <select id="statusFilter" class="select-filter">
+                <option value="all">Tất cả trạng thái</option>
+                <option value="Đang chờ">Đang chờ</option>
+                <option value="Đang thực hiện">Đang thực hiện</option>
+                <option value="Hoàn thành">Hoàn thành</option>
+                <option value="Đã hủy">Đã hủy</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã đặt</th>
+                  <th>Chủ nuôi & Thú cưng</th>
+                  <th>Dịch vụ & Khu vực</th>
+                  <th>Thời gian đặt</th>
+                  <th>Nhân viên</th>
+                  <th>Trạng thái</th>
+                  <th style="text-align: center">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="opsTableBody">
+                <!-- JS Render -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- CỘT PHẢI: KHU VỰC LỊCH SỬ BIẾN ĐỘNG REALTIME -->
+        <aside class="timeline-container">
+          <div class="timeline-header">
+            <h3 class="timeline-title">
+              <i class="fa-solid fa-bolt-lightning"></i> Lịch sử biến động
+            </h3>
+            <span class="badge-live"
+              ><i class="fa-solid fa-circle"></i> Live</span
+            >
+          </div>
+
+          <div class="timeline-scroll" id="timelineList">
+            <!-- JS Render biến động -->
+          </div>
+        </aside>
+      </main>
+
+      <!-- FOOTER LƯU Ý VẬN HÀNH -->
+      <footer class="app-footer">
+        <i class="fa-solid fa-lightbulb"></i>
+        <span
+          ><strong>Cảnh báo tải ca:</strong> Khu vực
+          <strong>Pet Spa</strong> hiện có 5 ca đang xếp hàng chờ. Lễ tân cân
+          nhắc điều phối thêm kỹ thuật viên!</span
+        >
+      </footer>
+    </div>
+
+    <script src="OperationsMonitor.js"></script>
+  </body>
+</html>

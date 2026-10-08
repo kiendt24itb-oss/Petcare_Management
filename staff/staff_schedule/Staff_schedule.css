@@ -1,101 +1,240 @@
 :root {
-  --primary-color: #ff6600;
+  --primary-orange: #ff5722;
+  --primary-orange-hover: #e64a19;
+  --bg-sidebar-left: #fdfaf8;
+  --bg-main: #ffffff;
+  --bg-disabled: #f1ece9;
+  --text-dark: #2c3e50;
+  --text-muted: #7f8c8d;
+  --border-color: #f0ebe8;
+  --input-border: #e2e8f0;
+
   --success-color: #10b981;
-  --danger-color: #ef4444;
+  --success-bg: #ecfdf5;
+  --success-border: #a7f3d0;
+
+  --warning-color: #ef4444;
+  --warning-bg: #fef2f2;
+  --warning-border: #fecaca;
+
   --info-color: #3b82f6;
-  --bg-dashboard: #f1f5f9;
-  --card-bg: #ffffff;
-  --text-main: #1e293b;
-  --text-muted: #64748b;
-  --border-color: #e2e8f0;
+  --info-bg: #eff6ff;
+
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
 * {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
 }
 
-body {
-  background-color: var(--bg-dashboard);
+/* KHÓA CỐ ĐỊNH CẢ TRANG - KHÔNG CHO CUỘN BODY */
+body,
+html {
+  width: 100%;
+  height: 100vh;
+  background-color: #f8f9fa;
+  overflow: hidden;
+}
+
+.cstm-wrapper-full {
+  width: 100%;
+  height: 100vh;
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.cstm-card-layout {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-main);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
   padding: 24px;
-  color: var(--text-main);
+  gap: 18px;
 }
 
-.schedule-container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-/* Header & Bộ lọc */
+/* ==================== HEADER & FILTERS ==================== */
 .schedule-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
-  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed var(--border-color);
 }
-.schedule-header h2 {
-  font-size: 22px;
-  color: var(--text-main);
-  margin-bottom: 4px;
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
-.schedule-header p {
-  font-size: 14px;
+
+.header-icon-box {
+  width: 42px;
+  height: 42px;
+  background: #fff0eb;
+  color: var(--primary-orange);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.header-subtitle {
+  font-size: 12.5px;
   color: var(--text-muted);
+}
+
+.header-filters-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .filter-group {
   display: flex;
-  background: #e2e8f0;
+  background: #f8fafc;
   padding: 4px;
-  border-radius: 8px;
+  border-radius: 30px;
+  border: 1px solid var(--input-border);
   gap: 4px;
 }
-.btn-filter {
-  padding: 8px 16px;
+
+/* Lọc thời gian */
+.btn-filter-time {
+  padding: 7px 14px;
   border: none;
   background: transparent;
   cursor: pointer;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 12px;
   color: var(--text-muted);
-  border-radius: 6px;
-  transition: all 0.2s;
+  border-radius: 20px;
+  transition: all 0.2s ease;
 }
+
+.btn-filter-time.active,
+.btn-filter-time:hover {
+  background: var(--primary-orange);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(255, 87, 34, 0.25);
+}
+
+/* Lọc trạng thái */
+.btn-filter {
+  padding: 7px 14px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-muted);
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .btn-filter.active,
 .btn-filter:hover {
-  background: white;
-  color: var(--primary-color);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+  color: var(--text-dark);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* Lưới danh sách Card đơn đặt lịch */
+.filter-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.filter-dot.waiting {
+  background: var(--info-color);
+}
+.filter-dot.processing {
+  background: var(--primary-orange);
+}
+.filter-dot.completed {
+  background: var(--success-color);
+}
+
+/* ==================== LƯỚI CARD CÓ SCROLL RIÊNG ==================== */
+.booking-grid-wrapper {
+  flex: 1;
+  overflow-y: auto; /* Tự động cuộn khi nhiều thẻ */
+  padding-right: 6px;
+}
+
+/* Thanh cuộn nhỏ gọn, mượt mà */
+.booking-grid-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+.booking-grid-wrapper::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+.booking-grid-wrapper::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
 .booking-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 16px;
 }
 
+/* CARD ĐƠN ĐẶT LỊCH HẸN */
 .booking-card {
-  background: var(--card-bg);
-  border-radius: 12px;
-  padding: 20px;
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  padding: 16px;
   border: 1px solid var(--border-color);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   position: relative;
   overflow: hidden;
-}
-.booking-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-/* Border chỉ định trạng thái ở rìa trái Card */
+.booking-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  border-color: #ffd8cc;
+}
+
+/* Thanh màu viền dán trái */
 .booking-card::before {
   content: "";
   position: absolute;
@@ -105,110 +244,139 @@ body {
   width: 5px;
   background: #cbd5e1;
 }
+
 .booking-card.WAITING::before {
   background: var(--info-color);
 }
 .booking-card.PROCESSING::before {
-  background: var(--primary-color);
+  background: var(--primary-orange);
 }
 .booking-card.COMPLETED::before {
   background: var(--success-color);
 }
 .booking-card.CANCELLED::before {
-  background: var(--danger-color);
+  background: var(--warning-color);
 }
 
 .card-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-}
-.booking-id {
-  font-weight: 700;
-  color: var(--text-muted);
-  font-size: 14px;
+  margin-bottom: 10px;
 }
 
-/* Badge Trạng thái */
-.badge {
-  display: inline-block;
-  padding: 4px 8px;
+.booking-id {
+  font-weight: 700;
+  color: var(--text-dark);
+  font-size: 12.5px;
+  background: #f8fafc;
+  padding: 2px 8px;
   border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
+  border: 1px solid #e2e8f0;
 }
+
+/* Badge trạng thái */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .badge.WAITING {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--info-bg);
+  color: var(--info-color);
 }
 .badge.PROCESSING {
-  background: #ffedd5;
-  color: #9a3412;
+  background: #fff0eb;
+  color: var(--primary-orange);
 }
 .badge.COMPLETED {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--success-bg);
+  color: var(--success-color);
 }
 .badge.CANCELLED {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--warning-bg);
+  color: var(--warning-color);
 }
 
 .card-pet {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
-  color: var(--text-main);
-  margin-bottom: 6px;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
+
+.card-room-tag {
+  font-size: 11px;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: auto;
+}
+
 .card-service {
-  font-size: 14px;
+  font-size: 12.5px;
   color: var(--text-muted);
-  margin-bottom: 12px;
-  font-style: italic;
+  margin-bottom: 14px;
+  line-height: 1.4;
 }
 
 .card-bottom {
   border-top: 1px dashed var(--border-color);
-  padding-top: 12px;
+  padding-top: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 13px;
-  color: var(--text-main);
+  font-size: 12px;
+  color: var(--text-dark);
 }
 
-/* ============================================================================= */
-/* 🕶️ CSS MODAL CHI TIẾT LỊCH HẸN */
-/* ============================================================================= */
+.card-bottom b {
+  color: var(--primary-orange);
+}
+
+/* ==================== MODAL CHI TIẾT LỊCH HẸN ==================== */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 999;
+  z-index: 9999;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s ease;
 }
+
 .modal-overlay.open {
   opacity: 1;
   pointer-events: auto;
 }
 
 .modal-content {
-  background: white;
-  width: 100%;
-  max-width: 600px;
-  border-radius: 16px;
-  animation: scaleUp 0.25s ease;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  width: 90%;
+  max-width: 580px;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: scaleUp 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
 @keyframes scaleUp {
   from {
     transform: scale(0.95);
@@ -224,162 +392,270 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
+  padding: 16px 20px;
+  background: #fdfaf8;
   border-bottom: 1px solid var(--border-color);
 }
-.close-modal-btn {
-  font-size: 28px;
-  cursor: pointer;
+
+.modal-title-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-icon {
+  width: 36px;
+  height: 36px;
+  background: #fff0eb;
+  color: var(--primary-orange);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.modal-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.modal-sub-id {
+  font-size: 11.5px;
   color: var(--text-muted);
 }
+
+.close-modal-btn {
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
 .close-modal-btn:hover {
-  color: var(--danger-color);
+  color: var(--warning-color);
 }
 
 .modal-body {
-  padding: 24px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 70vh;
+  overflow-y: auto;
 }
+
 .info-section-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 12px;
 }
-.info-section-grid label {
-  font-size: 12px;
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.info-label {
+  font-size: 11.5px;
   color: var(--text-muted);
-  font-weight: 600;
-  display: block;
-  margin-bottom: 4px;
-}
-.info-section-grid p {
-  font-size: 15px;
   font-weight: 600;
 }
 
-.modal-divider {
-  border: 0;
-  border-top: 1px solid var(--border-color);
-  margin: 16px 0;
+.info-val {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-dark);
 }
 
 .service-detail-box {
-  background: #f8fafc;
-  border: 1px solid var(--border-color);
-  padding: 16px;
-  border-radius: 10px;
-  margin-bottom: 16px;
+  background: #fff8f5;
+  border: 1px solid #ffe8e0;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
-.service-detail-box h4 {
-  font-size: 14px;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-}
-.service-row {
+
+.service-header-row {
   display: flex;
   justify-content: space-between;
-  font-weight: 700;
-  margin-bottom: 8px;
+  align-items: center;
 }
+
+.service-header-row h4 {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 .price-tag {
-  color: var(--primary-color);
+  color: var(--primary-orange);
+  font-size: 16px;
+  font-weight: 800;
 }
+
+.service-name-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
 .time-row {
-  font-size: 13px;
-  color: #475569;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
 }
 
 .customer-note {
   background: #fffbeb;
-  border-left: 4px solid var(--primary-color);
-  padding: 12px;
-  border-radius: 4px;
+  border-left: 4px solid #f59e0b;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
 }
+
 .customer-note label {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 700;
   color: #b45309;
 }
+
 .customer-note p {
-  font-size: 14px;
+  font-size: 12px;
   font-style: italic;
+  color: #451a03;
+  margin-top: 2px;
+}
+
+/* BOX KHU VỰC YÊU CẦU ĐỔI PHÒNG SỰ CỐ */
+.room-change-box {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+.room-change-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.btn-link-action {
+  background: none;
+  border: none;
+  color: var(--primary-orange);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.room-change-form {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.room-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.room-form-group label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.room-select,
+.room-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  font-size: 12px;
+  outline: none;
+}
+
+.btn-send-request {
+  padding: 8px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
   margin-top: 4px;
 }
 
-/* Nhóm nút ở footer modal */
 .modal-footer {
-  padding: 16px 24px;
+  padding: 14px 20px;
   background: #f8fafc;
   border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
-  border-radius: 0 0 16px 16px;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
 }
+
 .right-buttons {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
+
 .btn-action {
-  padding: 10px 16px;
+  padding: 9px 14px;
   border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 12.5px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  transition: all 0.2s ease;
 }
+
+.btn-start {
+  background: var(--primary-orange);
+  color: white;
+}
+.btn-start:hover {
+  background: var(--primary-orange-hover);
+}
+
 .btn-success {
   background: var(--success-color);
   color: white;
 }
-.btn-primary {
-  background: var(--info-color);
-  color: white;
-}
-.btn-danger {
-  background: #fee2e2;
-  color: var(--danger-color);
-}
-.btn-danger:hover {
-  background: var(--danger-color);
-  color: white;
-}
-.btn-action:disabled {
-  background: #cbd5e1;
-  color: #94a3b8;
-  cursor: not-allowed;
+.btn-success:hover {
+  background: #059669;
 }
 
-/* Toast */
-#pet-toast-container {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
+.btn-danger {
+  background: #fef2f2;
+  color: var(--warning-color);
+  border: 1px solid #fecaca;
 }
-.pet-toast {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-  margin-bottom: 10px;
-  border-left: 4px solid var(--success-color);
-  animation: slideIn 0.3s ease;
+.btn-danger:hover {
+  background: var(--warning-color);
+  color: white;
 }
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+
+.btn-action:disabled {
+  background: #cbd5e1 !important;
+  color: #94a3b8 !important;
+  border: none !important;
+  cursor: not-allowed;
 }

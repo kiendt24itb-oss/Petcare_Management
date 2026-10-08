@@ -9,11 +9,12 @@
 }
 
 :root {
-  --primary-color: #ff7a45; /* Màu cam thương hiệu */
-  --primary-hover: #e06532; /* Màu cam hover */
-  --dark-color: #262626; /* Màu tối */
-  --gray-text: #737373; /* Chữ xám */
-  --light-bg: #fffbf9; /* Nền sáng ấm */
+  --primary-color: #ff7a45;
+  --primary-hover: #e06532;
+  --primary-light-bg: #fff5f0;
+  --dark-color: #262626;
+  --gray-text: #737373;
+  --light-bg: #fffbf9;
   --white: #ffffff;
   --shadow: 0 10px 30px rgba(255, 122, 69, 0.05);
   --border-radius: 16px;
@@ -29,67 +30,159 @@ body {
 }
 
 /* ==========================================================================
-   II. LAYOUT SIDEBAR: KEM TRÀ SỮA DỊU MẮT
+   II. LAYOUT SIDEBAR
    ========================================================================== */
 .sidebar {
   width: 270px;
-  background-color: #f7f3f0; /* Màu trà sữa beige nhạt */
+  background-color: #ffffff;
   color: var(--dark-color);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 25px 18px;
-  transition: all 0.3s ease;
+  padding: 20px 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
-  border-right: 1px solid #ede5e0;
+  border-right: 1px solid #f0f0f0;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 100;
+}
+
+.sidebar.collapsed {
+  width: 80px;
+  padding: 20px 10px;
+}
+
+.sidebar.collapsed .sidebar-brand span,
+.sidebar.collapsed .user-mini-info,
+.sidebar.collapsed .menu-text,
+.sidebar.collapsed .sidebar-banner-illustration {
+  display: none !important;
+}
+
+.sidebar.collapsed .user-mini-profile {
+  justify-content: center;
+  padding: 8px;
+}
+
+.sidebar.collapsed .sidebar-menu li a {
+  justify-content: center;
+  padding: 12px;
+}
+
+.sidebar-brand-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+  padding: 0 4px;
+}
+
+.btn-toggle-sidebar {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.btn-toggle-sidebar:hover {
+  background-color: #f5f5f5;
+}
+
+.icon-toggle {
+  width: 22px;
+  height: 22px;
+  fill: #595959;
 }
 
 .sidebar-brand {
-  font-size: 21px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 19px;
   font-weight: 700;
   color: var(--primary-color);
-  margin-bottom: 25px;
-  text-align: center;
-  letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
-.sidebar-brand span {
-  color: #4a3e39; /* Chữ Premium màu nâu đất đậm */
+.brand-logo {
+  max-height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
+.brand-text span {
+  color: #262626;
 }
 
 .user-mini-profile {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 12px;
-  background: var(--white);
+  gap: 14px;
+  padding: 12px 14px;
+  background: #fafafa;
   border-radius: 14px;
-  margin-bottom: 25px;
-  box-shadow: 0 4px 12px rgba(74, 62, 57, 0.05);
-  border: 1px solid #eae1dc;
+  margin-bottom: 20px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
 }
 
 .user-mini-avatar {
-  width: 42px;
-  height: 42px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--primary-color);
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(255, 122, 69, 0.15);
+}
+
+.user-mini-info {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .user-mini-info h4 {
-  font-size: 13.5px;
-  color: #4a3e39;
+  font-size: 14px;
+  color: #262626;
   font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
-.user-mini-info span {
-  font-size: 10.5px;
-  color: var(--primary-color);
-  font-weight: bold;
-  text-transform: uppercase;
-  display: block;
-  margin-top: 2px;
+.user-role-badge-container {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+}
+
+.role-icon {
+  width: 15px;
+  height: 15px;
+  fill: var(--primary-color);
+  flex-shrink: 0;
+}
+
+.role-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-text);
+  white-space: nowrap;
+}
+
+.sidebar-top-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .sidebar-menu {
@@ -105,31 +198,51 @@ body {
 .sidebar-menu li a {
   display: flex;
   align-items: center;
-  gap: 12px;
-  color: #6b5e58;
+  gap: 14px;
+  color: #595959;
   padding: 12px 16px;
   border-radius: 12px;
   font-size: 14px;
   font-weight: 500;
   transition: all 0.25s ease;
   cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
-.sidebar-menu li a:hover,
+.menu-icon {
+  width: 20px;
+  height: 20px;
+  fill: #8c8c8c;
+  flex-shrink: 0;
+  transition: fill 0.25s ease;
+}
+
+.sidebar-menu li a:hover {
+  color: var(--primary-color);
+  background: var(--primary-light-bg);
+}
+
+.sidebar-menu li a:hover .menu-icon {
+  fill: var(--primary-color);
+}
+
 .sidebar-menu li.active a {
   color: var(--primary-color);
-  background: var(--white);
+  background: var(--primary-light-bg);
   font-weight: 700;
-  padding-left: 20px;
-  box-shadow: 0 4px 10px rgba(74, 62, 57, 0.04);
+}
+
+.sidebar-menu li.active a .menu-icon {
+  fill: var(--primary-color);
 }
 
 .sidebar-menu li.active::before {
   content: "";
   position: absolute;
-  left: 0;
-  top: 20%;
-  height: 60%;
+  left: -16px;
+  top: 15%;
+  height: 70%;
   width: 4px;
   background-color: var(--primary-color);
   border-radius: 0 4px 4px 0;
@@ -137,8 +250,50 @@ body {
 }
 
 .sidebar-footer {
-  border-top: 1px solid #eae1dc;
+  border-top: 1px solid #f0f0f0;
   padding-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sidebar-banner-illustration {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 0;
+  opacity: 0.85;
+  transition: all 0.3s ease;
+}
+
+.sidebar-banner-illustration:hover {
+  opacity: 1;
+  transform: translateY(-3px);
+}
+
+.pet-banner-img {
+  max-width: 180px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.08));
+}
+
+.footer-menu {
+  flex-grow: 0;
+}
+
+.btn-logout-link {
+  color: #ff4d4f !important;
+}
+
+.btn-logout-link .menu-icon {
+  fill: #ff4d4f !important;
+}
+
+.btn-logout-link:hover {
+  background: #fff1f0 !important;
 }
 
 /* ==========================================================================
@@ -226,7 +381,7 @@ body {
   fill: var(--primary-hover);
 }
 
-/* LOADER 3D - KIM TỰ THÁP LỚN */
+/* LOADER 3D KIM TỰ THÁP */
 .pyramid-container {
   display: flex;
   justify-content: center;
@@ -301,96 +456,6 @@ body {
   box-shadow: 0 0 10px rgba(255, 122, 69, 0.8);
 }
 
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.role-switcher {
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--primary-color);
-  background: var(--light-bg);
-  font-size: 12px;
-  font-weight: bold;
-  color: var(--primary-hover);
-  outline: none;
-  cursor: pointer;
-}
-
-.button-bell {
-  width: 40px;
-  height: 40px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f5f2eb;
-  border-radius: 50%;
-  cursor: pointer;
-  transition-duration: 0.3s;
-  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.05);
-  border: none;
-}
-
-.bell-icon {
-  width: 16px;
-}
-.bell-icon path {
-  fill: var(--dark-color);
-}
-.button-bell:hover {
-  background-color: rgba(255, 122, 69, 0.1);
-}
-.button-bell:hover .bell-icon path {
-  fill: var(--primary-color);
-}
-.button-bell:hover .bell-icon {
-  animation: bellRing 0.9s both;
-}
-
-.notification-badge {
-  position: absolute;
-  top: 10px;
-  right: 11px;
-  background-color: var(--primary-color);
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: 1px solid var(--white);
-  z-index: 10;
-}
-
-@keyframes bellRing {
-  0%,
-  100% {
-    transform-origin: top;
-  }
-  15% {
-    transform: rotateZ(10deg);
-  }
-  30% {
-    transform: rotateZ(-10deg);
-  }
-  45% {
-    transform: rotateZ(5deg);
-  }
-  60% {
-    transform: rotateZ(-5deg);
-  }
-  75% {
-    transform: rotateZ(2deg);
-  }
-}
-
-.button-bell:active {
-  transform: scale(0.85);
-}
-
-/* ==========================================================================
-   IV. SỬA ĐỔI TẬN GỐC: VÙNG CHỨA NỘI DUNG (CONTENT CONTAINER)
-   ========================================================================== */
 .content-container {
   padding: 0px;
   overflow: hidden;
@@ -401,308 +466,57 @@ body {
 }
 
 /* ==========================================================================
-   V. CSS CHUYÊN NGHIỆP CHO TRANG THÔNG TIN KHÁCH HÀNG
+   IV. BÁNH TRÒN PHÁT NHẠC MULTI-COLOR (ĐÃ GIẢM KÍCH THƯỚC TRÁNH TRÀN HEADER)
    ========================================================================== */
-.cstm-wrapper-full {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-}
-
-.cstm-card-layout {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  background: var(--white);
-  overflow: hidden;
-}
-
-/* Cột trái: Sidebar Profile */
-.cstm-sidebar-profile {
-  flex: 0 0 280px;
-  background: linear-gradient(180deg, #fbf8f6 0%, #f5f0ec 100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 25px;
-  border-right: 1px solid #ede5e0;
-  text-align: center;
-}
-
-.cstm-avatar-container {
-  position: relative;
-  margin-bottom: 20px;
-}
-
-.cstm-avatar-img {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 4px solid var(--white);
-  box-shadow: 0 8px 24px rgba(255, 122, 69, 0.15);
-}
-
-.cstm-upload-badge {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  width: 34px;
-  height: 34px;
-  background: var(--primary-color);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--white);
-  font-size: 14px;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
-}
-
-.cstm-upload-badge:hover {
-  transform: scale(1.1);
-  background: var(--primary-hover);
-}
-
-.cstm-upload-badge input {
-  display: none;
-}
-
-.cstm-profile-name {
-  font-size: 18px;
-  color: #4a3e39;
-  font-weight: 700;
-  margin-bottom: 5px;
-}
-
-.cstm-profile-status {
-  display: inline-block;
-  background: rgba(255, 122, 69, 0.1);
-  color: var(--primary-color);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 12px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.cstm-profile-tip {
-  font-size: 12px;
-  color: var(--gray-text);
-  line-height: 1.6;
-  margin-top: auto;
-  background: rgba(255, 255, 255, 0.5);
-  padding: 12px;
-  border-radius: 10px;
-}
-
-/* Cột phải: Khu vực nhập liệu chính */
-.cstm-main-form {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 40px;
-  background: var(--white);
-  justify-content: space-between;
-}
-
-.cstm-section-title {
-  font-size: 20px;
-  color: #4a3e39;
-  font-weight: 700;
-  margin-bottom: 25px;
-  position: relative;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #fff6f2;
-}
-
-.cstm-grid-fields {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px 25px;
-  flex-grow: 1;
-}
-
-.cstm-form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.cstm-col-2 {
-  grid-column: span 2;
-}
-
-.cstm-label {
-  font-size: 13px;
-  color: #6b5e58;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.cstm-input,
-.cstm-select {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1.5px solid #eae1dc;
-  background: #fdfdfd;
-  border-radius: 10px;
-  color: var(--dark-color);
-  font-size: 14px;
-  font-weight: 500;
-  outline: none;
-  box-sizing: border-box;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.cstm-input:focus,
-.cstm-select:focus {
-  border-color: var(--primary-color);
-  background: var(--white);
-  box-shadow: 0 4px 15px rgba(255, 122, 69, 0.08);
-}
-
-.cstm-input-disabled {
-  background: #f5f2eb !important;
-  border-color: #ede5e0 !important;
-  color: #a89790 !important;
-  cursor: not-allowed;
-  font-weight: 700;
-}
-
-.cstm-input::placeholder {
-  color: #bfaea6;
-  font-style: italic;
-  font-size: 13px;
-}
-
-.cstm-select-wrapper {
-  position: relative;
-}
-
-.cstm-select {
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
-}
-
-.cstm-select-wrapper::after {
-  content: "▾";
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #bfaea6;
-  pointer-events: none;
-  font-size: 16px;
-}
-
-.cstm-select:invalid {
-  color: #bfaea6;
-  font-style: italic;
-}
-
-/* Thanh hành động chứa nút */
-.cstm-actions-bar {
-  margin-top: 15px;
-  padding-top: 20px;
-  border-top: 1px solid #f2ece8;
-  display: flex;
-  justify-content: flex-end;
-  gap: 15px;
-}
-
-.cstm-btn {
-  padding: 12px 32px;
-  border-radius: 24px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-}
-
-.cstm-btn-secondary {
-  background: #f5f2eb;
-  color: #6b5e58;
-  border: 1px solid #ede5e0;
-}
-
-.cstm-btn-secondary:hover {
-  background: #eae1dc;
-}
-
-.cstm-btn-primary {
-  background: var(--primary-color);
-  color: var(--white);
-  border: none;
-  box-shadow: 0 4px 14px rgba(255, 122, 69, 0.2);
-}
-
-.cstm-btn-primary:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(224, 101, 50, 0.3);
-}
-
-.cstm-btn:active {
-  transform: scale(0.98);
-}
-
-/* Wrapper lo di chuyển Portal: Đã hạ tốc độ xuống 5.5s rất chill và ép nhận !important */
 .portal-wrapper {
-  display: inline-block;
-  animation: floatX 5.5s ease-in-out infinite !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  height: 50px; /* Khống chế chiều cao tối đa nằm trọn trong Topbar */
+  width: 50px;
 }
 
-/* ==========================================================================
-   VI. COSMIC PORTAL - ĐÃ ĐỒNG BỘ MÀU CAM THƯƠNG HIỆU (BRANDED SUNSET)
-   ========================================================================== */
 .cosmic-portal-container {
-  width: 54px;
-  height: 54px;
+  width: 50px; /* Giảm size gốc từ 54px xuống 44px */
+  height: 50px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(
-    circle,
-    #23120b 0%,
-    #0c0502 100%
-  ); /* Nền tối chuyển sang nâu cam đất sâu thẳm */
+  background: radial-gradient(circle, #23120b 0%, #0c0502 100%);
   border-radius: 50%;
-  border: 1.5px solid rgba(255, 122, 69, 0.3); /* Viền cam mờ */
+  border: 1.5px solid rgba(255, 122, 69, 0.6);
   box-shadow:
-    0 0 15px rgba(255, 122, 69, 0.2),
-    inset 0 0 10px rgba(255, 230, 0, 0.2);
+    0 0 12px rgba(255, 122, 69, 0.3),
+    inset 0 0 8px rgba(255, 230, 0, 0.2);
   overflow: hidden;
-  transition: 0.4s;
+  transition:
+    transform 0.05s ease-out,
+    border-color 0.1s linear,
+    box-shadow 0.1s linear;
+  opacity: 1 !important;
 }
 
 .cosmic-portal-container:hover {
-  transform: scale(1.12);
-  border-color: #ff7a45; /* Đổi sang màu cam thương hiệu sáng */
-  box-shadow:
-    0 0 25px rgba(255, 122, 69, 0.6),
-    0 0 50px rgba(255, 166, 0, 0.4);
+  transform: scale(1.08);
 }
 
 .cosmic-core {
   position: absolute;
-  width: 10px;
-  height: 10px;
+  width: 8px; /* Thu nhỏ lõi */
+  height: 8px;
   background: #fff;
   border-radius: 50%;
   box-shadow:
-    0 0 12px #fff,
-    0 0 24px #ff7a45,
-    /* Core phát sáng cam */ 0 0 36px #ffe600; /* Viền ngoài core màu vàng ấm */
+    0 0 10px #fff,
+    0 0 20px #ff7a45;
+  transition:
+    background 0.1s linear,
+    box-shadow 0.1s linear;
 }
 
 .quantum-ring {
@@ -711,26 +525,26 @@ body {
 }
 
 .ring-1 {
-  width: 44px;
-  height: 44px;
-  border-top: 1px solid #ff7a45; /* Cam */
-  border-bottom: 1px solid #ffe600; /* Vàng */
+  width: 36px;
+  height: 36px;
+  border-top: 1.5px solid #ff7a45;
+  border-bottom: 1.5px solid #ffe600;
   animation: spin 3s linear infinite;
 }
 
 .ring-2 {
-  width: 36px;
-  height: 36px;
-  border-left: 1px solid #ff4d4f; /* Hồng đào đậm */
-  border-right: 1px solid #ffbe1a; /* Vàng hoàng kim */
+  width: 28px;
+  height: 28px;
+  border-left: 1.5px solid #ff4d4f;
+  border-right: 1.5px solid #ffbe1a;
   transform: rotateX(60deg);
   animation: spinY 4s linear infinite;
 }
 
 .ring-3 {
-  width: 50px;
-  height: 50px;
-  border: 1px dashed rgba(255, 122, 69, 0.5); /* Nét đứt màu cam ấm */
+  width: 40px;
+  height: 40px;
+  border: 1px dashed rgba(255, 122, 69, 0.6);
   animation: spin 8s linear reverse infinite;
 }
 
@@ -738,13 +552,12 @@ body {
   position: absolute;
   width: 2px;
   height: 2px;
-  background: #ffe600; /* Đổi sao thành hạt vàng lấp lánh */
+  background: #ffe600;
   border-radius: 50%;
   opacity: 0;
   top: 50%;
   left: 50%;
 }
-
 .s1 {
   animation: star 1.8s infinite linear;
   transform: rotate(30deg);
@@ -770,11 +583,6 @@ body {
   transform: rotate(330deg);
 }
 
-/* ==========================================================================
-   VII. BỘ ANIMATIONS CHUẨN MƯỢT
-   ========================================================================== */
-
-/* ANIMATION KIM TỰ THÁP: Xoay tròn mượt quanh trục đứng như con quay gốc */
 @keyframes pyramidSpin {
   0% {
     transform: rotateX(-20deg) rotateY(0deg);
@@ -784,7 +592,6 @@ body {
   }
 }
 
-/* ANIMATION PORTAL RING 1 & 3 */
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -794,7 +601,6 @@ body {
   }
 }
 
-/* ANIMATION PORTAL RING 2 */
 @keyframes spinY {
   from {
     transform: rotateX(60deg) rotateY(0deg);
@@ -804,7 +610,6 @@ body {
   }
 }
 
-/* ANIMATION SAO BẮN */
 @keyframes star {
   0% {
     transform: translate(-50%, -50%) translateX(0) scale(0.2);
@@ -815,37 +620,16 @@ body {
     opacity: 1;
   }
   100% {
-    transform: translate(-50%, -50%) translateX(30px) scale(1.5);
+    transform: translate(-50%, -50%) translateX(22px) scale(1.2);
     opacity: 0;
   }
 }
 
-/* ANIMATION DI CHUYỂN PORTAL: Lướt liên tục không khựng, lệch xa hẳn sang bên trái */
-@keyframes floatX {
-  0% {
-    transform: translateX(
-      -110px
-    ); /* Đẩy xa hẳn sang bên trái cho hoành tráng */
-  }
-  50% {
-    transform: translateX(
-      15px
-    ); /* Lướt nhẹ sang bên phải chạm rìa danh sách kê */
-  }
-  100% {
-    transform: translateX(-110px); /* Quay lại bên trái cực mượt */
-  }
-}
-
-/* =============================================================================
-   🔔 VII. CSS CHUÔNG THÔNG BÁO VÀ DROPDOWN NHẬT KÝ (ĐỒNG BỘ THƯƠNG HIỆU)
-   ============================================================================= */
+/* NOTIFICATIONS STYLES */
 .notification-container {
   position: relative;
   display: inline-block;
 }
-
-/* 🔘 Nút Chuông Uiverse cao cấp */
 .notification-container .button {
   width: 40px;
   height: 40px;
@@ -853,50 +637,39 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f5f2eb; /* Đồng bộ nền nút bell cũ của ní */
+  background-color: #f5f2eb;
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.05);
   border: 1px solid #ede5e0;
 }
-
 .notification-container .bell {
   width: 16px;
   height: 16px;
   transition: transform 0.3s ease;
 }
-
 .notification-container .bell path {
   fill: var(--dark-color);
   transition: fill 0.3s ease;
 }
-
-/* Hiệu ứng Hover nút Chuông */
 .notification-container .button:hover {
-  background-color: rgba(255, 122, 69, 0.1); /* Chuyển màu cam mờ dịu mắt */
+  background-color: rgba(255, 122, 69, 0.1);
   border-color: rgba(255, 122, 69, 0.25);
   box-shadow: 0 4px 12px rgba(255, 122, 69, 0.1);
 }
-
 .notification-container .button:hover .bell {
   animation: bellRing 0.9s both;
 }
-
 .notification-container .button:hover .bell path {
-  fill: var(--primary-color); /* Đổi icon sang Cam thương hiệu */
+  fill: var(--primary-color);
 }
 
-.notification-container .button:active {
-  transform: scale(0.92);
-}
-
-/* 🔴 Badge nổ số lượng thông báo hình tròn */
 .noti-badge {
   position: absolute;
   top: -2px;
   right: -2px;
-  background-color: #ff4d4f; /* Màu đỏ san hô nổ bật */
+  background-color: #ff4d4f;
   color: var(--white);
   font-size: 10px;
   font-weight: 700;
@@ -907,21 +680,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--white); /* Tạo viền trắng tách biệt */
+  border: 2px solid var(--white);
   box-shadow: 0 2px 6px rgba(255, 77, 79, 0.4);
   z-index: 5;
   animation: badgePulse 2s infinite;
 }
 
-/* 📂 Khung Dropdown đổ xuống */
 .noti-dropdown {
   position: absolute;
   top: 52px;
   right: 0;
   width: 340px;
   background-color: var(--white);
-  border-radius: 14px; /* Đồng bộ border-radius hệ thống */
-  box-shadow: 0 10px 35px rgba(74, 62, 57, 0.15); /* Đổ bóng sâu cao cấp */
+  border-radius: 14px;
+  box-shadow: 0 10px 35px rgba(74, 62, 57, 0.15);
   border: 1px solid #eae1dc;
   display: none;
   z-index: 1000;
@@ -929,80 +701,23 @@ body {
   font-family: "Roboto", sans-serif;
   transform-origin: top right;
 }
-
-/* Trạng thái mở Dropdown kích hoạt bằng JS */
 .noti-dropdown.open {
   display: block;
   animation: notiScaleIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-/* Tiêu đề Dropdown (Tone Trà sữa nhạt sang trọng) */
 .noti-header {
   padding: 14px 18px;
   background: linear-gradient(135deg, #fbf8f6 0%, #f5f0ec 100%);
   border-bottom: 1px solid #ede5e0;
   font-weight: 700;
-  color: #4a3e39; /* Màu nâu đất đậm */
+  color: #4a3e39;
   font-size: 13.5px;
   letter-spacing: 0.3px;
 }
-
-/* Thùng chứa danh sách cuộn thông báo */
 .noti-body {
   max-height: 300px;
   overflow-y: auto;
 }
-
-/* Định dạng thanh cuộn mượt cho danh sách thông báo */
-.noti-body::-webkit-scrollbar {
-  width: 5px;
-}
-.noti-body::-webkit-scrollbar-track {
-  background: #fdfdfd;
-}
-.noti-body::-webkit-scrollbar-thumb {
-  background: #eae1dc;
-  border-radius: 10px;
-}
-.noti-body::-webkit-scrollbar-thumb:hover {
-  background: #bfaea6;
-}
-
-/* 📄 Từng dòng nhật ký thông báo */
-.noti-item {
-  padding: 14px 18px;
-  border-bottom: 1px solid #fff6f2;
-  transition: background-color 0.2s ease;
-  cursor: pointer;
-}
-
-.noti-item:last-child {
-  border-bottom: none;
-}
-
-.noti-item:hover {
-  background-color: #fffbf9; /* Nền sáng ấm thương hiệu */
-}
-
-/* Thời gian Log */
-.noti-item .noti-time {
-  font-size: 11px;
-  color: #bfaea6;
-  font-weight: 500;
-  display: block;
-  margin-bottom: 5px;
-}
-
-/* Nội dung text */
-.noti-item .noti-text {
-  font-size: 13px;
-  color: var(--dark-color);
-  margin: 0;
-  line-height: 1.45;
-  font-weight: 400;
-}
-
-/* Biến đổi text nhẹ khi rỗng */
 .noti-empty-state {
   padding: 30px 20px;
   text-align: center;
@@ -1011,11 +726,6 @@ body {
   font-style: italic;
 }
 
-/* =============================================================================
-   🔥 BỘ HIỆU ỨNG CHUYỂN ĐỘNG BỔ SUNG (ANIMATIONS)
-   ============================================================================= */
-
-/* Nhịp đập nhẹ cho badge đỏ */
 @keyframes badgePulse {
   0% {
     transform: scale(1);
@@ -1028,8 +738,6 @@ body {
     transform: scale(1);
   }
 }
-
-/* Bung mở dropdown góc phải mượt mà */
 @keyframes notiScaleIn {
   from {
     opacity: 0;

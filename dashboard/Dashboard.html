@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Petcare Premium - Dashboard</title>
+    <title>PetCare Premium - Dashboard</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
       rel="stylesheet"
@@ -11,10 +11,39 @@
     <link rel="stylesheet" href="Dashboard.css" />
   </head>
   <body>
-    <aside class="sidebar">
-      <div>
-        <div class="sidebar-brand">🐾 PetCare <span>Premium</span></div>
+    <!-- SIDEBAR CHÍNH -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top-content">
+        <!-- Brand / Header Sidebar với nút Hamburger Toggle -->
+        <div class="sidebar-brand-container">
+          <button
+            class="btn-toggle-sidebar"
+            id="btnToggleSidebar"
+            title="Thu gọn / Mở rộng"
+          >
+            <svg viewBox="0 0 24 24" class="icon-toggle">
+              <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+            </svg>
+          </button>
+          <div class="sidebar-brand">
+            <img
+              src="YOUR_LOGO_URL_HERE.png"
+              alt="PetCare Logo"
+              class="brand-logo"
+              id="brandLogo"
+              onerror="
+                this.style.display = 'none';
+                document.getElementById('brandTextFallback').style.display =
+                  'inline-block';
+              "
+            />
+            <span class="brand-text" id="brandTextFallback"
+              >PetCare <span>Premium</span></span
+            >
+          </div>
+        </div>
 
+        <!-- Mini Profile -->
         <div class="user-mini-profile">
           <img
             src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%23ff9a9e'/><stop offset='100%' stop-color='%23fecfef'/></linearGradient></defs><circle cx='50' cy='50' r='50' fill='url(%23g)'/><circle cx='50' cy='42' r='20' fill='%23fff'/><path d='M20,80 C20,60 80,60 80,80' fill='%23fff'/></svg>"
@@ -24,24 +53,58 @@
           />
           <div class="user-mini-info">
             <h4 id="userProfileName">Đang tải...</h4>
-            <span id="userRoleBadge">-</span>
+            <div id="userRoleBadge" class="user-role-badge-container"></div>
           </div>
         </div>
 
+        <!-- Menu Động (JS Render) -->
         <ul class="sidebar-menu" id="dynamicMenu"></ul>
       </div>
 
+      <!-- Phần chân Sidebar -->
       <div class="sidebar-footer">
-        <ul class="sidebar-menu">
+        <div class="sidebar-banner-illustration">
+          <img
+            src="../../uploads/banner.png"
+            alt="Pet Illustration"
+            class="pet-banner-img"
+            onerror="
+              this.src =
+                'https://cdni.iconscout.com/illustration/premium/thumb/cat-and-dog-5380587-4497607.png'
+            "
+          />
+        </div>
+
+        <ul class="sidebar-menu footer-menu">
           <li>
-            <a href="#" id="btnLogout" style="color: #ff7a45; font-weight: bold"
-              >🚪 Đăng xuất</a
+            <a
+              href="/user/change_password/ChangePassword.html"
+              id="btnChangePassword"
+              target="mainFrame"
             >
+              <svg class="menu-icon" viewBox="0 0 24 24">
+                <path
+                  d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v2h2v-2h2v-2h-8.35zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"
+                />
+              </svg>
+              <span class="menu-text">Đổi mật khẩu</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" id="btnLogout" class="btn-logout-link">
+              <svg class="menu-icon" viewBox="0 0 24 24">
+                <path
+                  d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14v-2H4V5z"
+                />
+              </svg>
+              <span class="menu-text">Đăng xuất</span>
+            </a>
           </li>
         </ul>
       </div>
     </aside>
 
+    <!-- WORKSPACE CHÍNH -->
     <main class="main-workspace">
       <header class="topbar">
         <div class="topbar-left">
@@ -101,8 +164,13 @@
             </div>
           </div>
 
-          <div class="portal-wrapper" id="cosmicPortalWrapper">
-            <div class="cosmic-portal-container">
+          <!-- BÁNH TRÒN TRÌNH PHÁT NHẠC MULTI-COLOR (ĐÃ KHỐNG CHẾ KÍCH THƯỚC VỪA HEADER) -->
+          <div
+            class="portal-wrapper"
+            id="cosmicPortalWrapper"
+            title="1-Click: Bật/Tắt Nhạc | 2-Click: Mở chọn nhạc"
+          >
+            <div class="cosmic-portal-container" id="cosmicPortalContainer">
               <div class="quantum-ring ring-1"></div>
               <div class="quantum-ring ring-2"></div>
               <div class="quantum-ring ring-3"></div>
@@ -119,6 +187,16 @@
               </div>
             </div>
           </div>
+
+          <!-- ELEMENT ẨN ĐỂ XỬ LÝ NHẠC -->
+          <input
+            type="file"
+            id="audioFileInput"
+            accept="audio/*,video/*"
+            multiple
+            style="display: none"
+          />
+          <audio id="bgAudioPlayer" style="display: none"></audio>
         </div>
       </header>
 
@@ -141,26 +219,6 @@
       </section>
     </main>
 
-    <script>
-      const wrapper = document.querySelector(".portal-wrapper");
-
-      if (wrapper) {
-        const duration = (Math.random() * 2 + 3).toFixed(2); // 3–5s
-        wrapper.style.animationDuration = duration + "s";
-        const distance = Math.floor(Math.random() * 10 + 20); // 20–30px
-
-        const styleTag = document.createElement("style");
-        styleTag.innerHTML = `
-          @keyframes floatMoveDynamic {
-            0%   { transform: translateX(-${distance}px); }
-            50%  { transform: translateX(${distance}px); }
-            100% { transform: translateX(-${distance}px); }
-          }
-        `;
-        document.head.appendChild(styleTag);
-        wrapper.style.animationName = "floatMoveDynamic";
-      }
-    </script>
     <script src="Dashboard.js"></script>
   </body>
 </html>

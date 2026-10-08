@@ -1,560 +1,672 @@
-/**
- * 👥 FILE: StaffManagement.js
- * Quản lý danh sách nhân viên, upload avatar trực quan và đồng bộ chức vụ động từ DB
- * ĐÃ HOÀN THIỆN: Kết nối API Backend real-time đổ dữ liệu cho Top Widgets và Bảng chấm công
- */
+// ==========================================================================
+// I. DỮ LIỆU MẪU NHÂN VIÊN
+// ==========================================================================
+const employees = [
+  {
+    code: "NV-A001",
+    name: "Nguyễn Văn An",
+    avatar: "https://i.pravatar.cc/150?img=11",
+    role: "Quản lý",
+    roleClass: "role-manager",
+    phone: "0987 654 321",
+    email: "an.nguyen@petcare.vn",
+    status: "Đang làm việc",
+    statusClass: "status-working",
+    startDate: "15/03/2023",
+    cccd: "036098001234",
+    address: "Cầu Giấy, Hà Nội",
+    shiftSalary: 300000,
+    shiftType: "Ca sáng",
+    schedulePattern: "all",
+  },
+  {
+    code: "NV-A002",
+    name: "Trần Thị Bích Ngọc",
+    avatar: "https://i.pravatar.cc/150?img=5",
+    role: "Nhân viên Spa",
+    roleClass: "role-spa",
+    phone: "0977 123 456",
+    email: "ngoc.tran@petcare.vn",
+    status: "Đang làm việc",
+    statusClass: "status-working",
+    startDate: "21/06/2022",
+    cccd: "036098005678",
+    address: "Đống Đa, Hà Nội",
+    shiftSalary: 250000,
+    shiftType: "Ca chiều",
+    schedulePattern: "weekdays",
+  },
+  {
+    code: "NV-A003",
+    name: "Lê Minh Hoàng",
+    avatar: "https://i.pravatar.cc/150?img=12",
+    role: "Bác sĩ thú y",
+    roleClass: "role-doctor",
+    phone: "0933 789 412",
+    email: "hoang.le@petcare.vn",
+    status: "Đang làm việc",
+    statusClass: "status-working",
+    startDate: "10/01/2023",
+    cccd: "036098009999",
+    address: "Thanh Xuân, Hà Nội",
+    shiftSalary: 400000,
+    shiftType: "Ca sáng",
+    schedulePattern: "all",
+  },
+  {
+    code: "NV-A004",
+    name: "Phạm Thùy Linh",
+    avatar: "https://i.pravatar.cc/150?img=9",
+    role: "Nhân viên khách sạn",
+    roleClass: "role-hotel",
+    phone: "0912 345 678",
+    email: "linh.pham@petcare.vn",
+    status: "Đang làm việc",
+    statusClass: "status-working",
+    startDate: "05/05/2023",
+    cccd: "036098008888",
+    address: "Hai Bà Trưng, Hà Nội",
+    shiftSalary: 220000,
+    shiftType: "Ca tối",
+    schedulePattern: "weekends",
+  },
+  {
+    code: "NV-A005",
+    name: "Đỗ Quốc Trung",
+    avatar: "https://i.pravatar.cc/150?img=13",
+    role: "Kỹ thuật viên",
+    roleClass: "role-tech",
+    phone: "0898 765 123",
+    email: "trung.do@petcare.vn",
+    status: "Nghỉ tạm thời",
+    statusClass: "status-leave",
+    startDate: "18/11/2022",
+    cccd: "036098007777",
+    address: "Ba Đình, Hà Nội",
+    shiftSalary: 280000,
+    shiftType: "Ca sáng",
+    schedulePattern: "weekdays",
+  },
+  {
+    code: "NV-A006",
+    name: "Vũ Thị Mai",
+    avatar: "https://i.pravatar.cc/150?img=10",
+    role: "Nhân viên Spa",
+    roleClass: "role-spa",
+    phone: "0888 234 567",
+    email: "mai.vu@petcare.vn",
+    status: "Đang làm việc",
+    statusClass: "status-working",
+    startDate: "12/04/2021",
+    cccd: "036098006666",
+    address: "Tây Hồ, Hà Nội",
+    shiftSalary: 250000,
+    shiftType: "Ca chiều",
+    schedulePattern: "all",
+  },
+  {
+    code: "NV-A007",
+    name: "Bùi Anh Dũng",
+    avatar: "https://i.pravatar.cc/150?img=8",
+    role: "Nhân viên khách sạn",
+    roleClass: "role-hotel",
+    phone: "0909 987 654",
+    email: "dung.bui@petcare.vn",
+    status: "Nghỉ tạm thời",
+    statusClass: "status-leave",
+    startDate: "30/08/2024",
+    cccd: "036098005555",
+    address: "Hoàn Kiếm, Hà Nội",
+    shiftSalary: 220000,
+    shiftType: "Ca tối",
+    schedulePattern: "weekdays",
+  },
+  {
+    code: "NV-A008",
+    name: "Huỳnh Ngọc Hà",
+    avatar: "https://i.pravatar.cc/150?img=16",
+    role: "Lễ tân",
+    roleClass: "role-reception",
+    phone: "0938 456 789",
+    email: "ha.huynh@petcare.vn",
+    status: "Đang làm việc",
+    statusClass: "status-working",
+    startDate: "22/02/2021",
+    cccd: "036098004444",
+    address: "Long Biên, Hà Nội",
+    shiftSalary: 230000,
+    shiftType: "Ca sáng",
+    schedulePattern: "all",
+  },
+  {
+    code: "NV-A009",
+    name: "Trịnh Tấn Phát",
+    avatar: "https://i.pravatar.cc/150?img=15",
+    role: "Bác sĩ thú y",
+    roleClass: "role-doctor",
+    phone: "0901 234 567",
+    email: "phat.trinh@petcare.vn",
+    status: "Đang làm việc",
+    statusClass: "status-working",
+    startDate: "14/09/2023",
+    cccd: "036098003333",
+    address: "Nam Từ Liêm, Hà Nội",
+    shiftSalary: 420000,
+    shiftType: "Ca chiều",
+    schedulePattern: "weekdays",
+  },
+  {
+    code: "NV-A010",
+    name: "Hoàng Mai Phương",
+    avatar: "https://i.pravatar.cc/150?img=20",
+    role: "Lễ tân",
+    roleClass: "role-reception",
+    phone: "0945 678 910",
+    email: "phuong.hoang@petcare.vn",
+    status: "Nghỉ tạm thời",
+    statusClass: "status-leave",
+    startDate: "01/12/2023",
+    cccd: "036098002222",
+    address: "Hà Đông, Hà Nội",
+    shiftSalary: 230000,
+    shiftType: "Ca sáng",
+    schedulePattern: "all",
+  },
+];
 
-const SERVER_HOST = "http://localhost:8080";
-const BASE_URL = `${SERVER_HOST}/api`;
+// CẤU HÌNH PHÂN TRANG & BIẾN TOÀN CỤC
+let currentPage = 1;
+const itemsPerPage = 5;
+let filteredData = [...employees];
+let editingEmpCode = null; // null: Thêm mới, khác null: Xem/Sửa
+let deletingEmpCode = null; // Mã NV đang chọn xóa
+let currentUploadedAvatar = "https://i.pravatar.cc/150?img=12"; // Lưu base64 hoặc url ảnh hiện tại
 
-const DEFAULT_SVG_AVATAR =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjOlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZjlhOWUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZWNmZWYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0idXJsKCNnKSIvPldjdXN0b21lcjxjaXJjbGUgY3g9IjUwIiBjeT0iNDIiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTI1LDc1IEMyNSw1OCA3NSw1OCA3NSw3NSIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==";
-
-// 🌟 Biến lưu trữ dữ liệu tập trung
-let ALL_STAFFS_DATA = [];
-let ATTENDANCE_DASHBOARD_DATA = []; // Lưu trữ mảng trạng thái chấm công của toàn tiệm từ API dashboard-status
-let SEARCH_STAFF_KEYWORD = "";
-let listPositionsGlobal = [];
-let uploadedAvatarPath = null;
-
-document.addEventListener("DOMContentLoaded", function () {
-  const urlParams = new URLSearchParams(window.location.search);
-  let token = urlParams.get("token");
-
-  if (!token) token = localStorage.getItem("petcare_token");
-  if (!token && window.parent && window.parent.localStorage) {
-    token = window.parent.localStorage.getItem("petcare_token");
+// Trả về class hiển thị badge tương ứng cho chức vụ
+function getRoleClass(role) {
+  switch (role) {
+    case "Quản lý":
+      return "role-manager";
+    case "Nhân viên Spa":
+      return "role-spa";
+    case "Bác sĩ thú y":
+      return "role-doctor";
+    case "Nhân viên khách sạn":
+      return "role-hotel";
+    case "Kỹ thuật viên":
+      return "role-tech";
+    case "Lễ tân":
+      return "role-reception";
+    default:
+      return "role-unassigned";
   }
+}
 
-  if (
-    !token ||
-    token === "null" ||
-    token === "undefined" ||
-    token.trim() === ""
-  ) {
-    console.error("❌ Front-End chặn: Không tìm thấy Token hợp lệ!");
-    showLocalToast("Phiên làm việc hết hạn. Vui lòng đăng nhập lại!", "error");
+// Trả về class trạng thái làm việc
+function getStatusClass(status) {
+  switch (status) {
+    case "Đang làm việc":
+      return "status-working";
+    case "Nghỉ tạm thời":
+      return "status-leave";
+    default:
+      return "status-working";
+  }
+}
+
+// ==========================================================================
+// II. RENDER GIAO DIỆN BẢNG & PHÂN TRANG
+// ==========================================================================
+function renderTable(data) {
+  const tableBody = document.getElementById("employeeTableBody");
+  tableBody.innerHTML = "";
+
+  const start = (currentPage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const paginatedItems = data.slice(start, end);
+
+  if (paginatedItems.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 30px; color: #94a3b8;">Không tìm thấy nhân viên phù hợp</td></tr>`;
     return;
   }
 
-  initPositionsData(token);
-  loadStaffsList(token);
-  initDropdownFilter(token);
+  paginatedItems.forEach((emp) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td class="emp-code">${emp.code}</td>
+      <td>
+        <div class="emp-profile">
+          <img src="${emp.avatar || "https://i.pravatar.cc/150?img=12"}" alt="${emp.name}" class="avatar">
+          <span>${emp.name}</span>
+        </div>
+      </td>
+      <td><span class="role-badge ${emp.roleClass || getRoleClass(emp.role)}">${emp.role || "Chưa được gán"}</span></td>
+      <td class="phone-cell"><i class="fa-solid fa-phone"></i>${emp.phone}</td>
+      <td class="email-cell"><i class="fa-solid fa-envelope"></i>${emp.email}</td>
+      <td>
+        <span class="status-badge ${emp.statusClass || getStatusClass(emp.status)}">
+          <span class="status-dot"></span>
+          ${emp.status}
+        </span>
+      </td>
+      <td><i class="fa-regular fa-calendar" style="color: #ff7a45; margin-right: 6px;"></i>${emp.startDate}</td>
+      <td>
+        <div class="action-btns">
+          <button class="btn-icon btn-view" title="Xem & Sửa thông tin" onclick="openEditModal('${emp.code}')"><i class="fa-regular fa-eye"></i></button>
+          <button class="btn-icon btn-schedule" title="Lịch làm việc"><i class="fa-regular fa-calendar-check"></i></button>
+          <button class="btn-icon btn-delete" title="Xóa" onclick="openDeleteModal('${emp.code}')"><i class="fa-regular fa-trash-can"></i></button>
+        </div>
+      </td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
 
-  const staffNameInput = document.getElementById("staffName");
-  if (staffNameInput) {
-    staffNameInput.addEventListener("input", function () {
-      document.getElementById("profileStaffName").innerText =
-        this.value.trim() || "Họ và Tên";
-    });
-  }
+// Cập nhật thẻ thống kê
+function updateStats(data) {
+  document.getElementById("total-count").textContent = data.length;
+  document.getElementById("working-count").textContent = data.filter(
+    (e) => e.status === "Đang làm việc",
+  ).length;
+  document.getElementById("late-count").textContent = data.filter(
+    (e) => e.status === "Nghỉ tạm thời",
+  ).length;
+  document.getElementById("absent-count").textContent = 0;
+}
 
-  const inputStaffAvatar = document.getElementById("inputStaffAvatar");
-  if (inputStaffAvatar) {
-    inputStaffAvatar.addEventListener("change", async function (event) {
-      const file = event.target.files[0];
-      if (!file) return;
+// Render các nút phân trang
+function renderPagination(totalItems) {
+  const paginationContainer = document.getElementById("pagination");
+  paginationContainer.innerHTML = "";
 
-      if (!file.type.startsWith("image/")) {
-        showLocalToast("Vui lòng chọn tệp hình ảnh hợp lệ!", "error");
-        this.value = "";
-        return;
-      }
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  if (totalPages <= 1) return;
 
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        document.getElementById("staffAvatarPreview").src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-
-      await uploadStaffAvatarFile(file, token);
-    });
-  }
-
-  const staffModal = document.getElementById("staffModal");
-  const btnOpenAddModal = document.getElementById("btnOpenAddModal");
-  const btnCloseModal = document.getElementById("btnCloseModal");
-  const btnCancelModal = document.getElementById("btnCancelModal");
-  const formStaff = document.getElementById("formStaff");
-
-  if (btnOpenAddModal) {
-    btnOpenAddModal.addEventListener("click", () => {
-      formStaff.reset();
-      uploadedAvatarPath = null;
-      document.getElementById("staffId").value = "";
-      document.getElementById("staffCodeGroup").style.display = "none";
-      document.getElementById("profileStaffName").innerText = "Họ và Tên";
-      document.getElementById("profileStaffCode").innerText = "Mã NV: Mới";
-      document.getElementById("staffAvatarPreview").src = DEFAULT_SVG_AVATAR;
-      document.getElementById("modalTitle").innerHTML =
-        "👤 Tuyển Dụng Nhân Viên Mới";
-      staffModal.style.display = "flex";
-    });
-  }
-
-  const closeModalFunc = () => {
-    staffModal.style.display = "none";
+  // 1. Nút Lùi (Prev)
+  const prevBtn = document.createElement("div");
+  prevBtn.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
+  prevBtn.innerHTML = `<i class="fa-solid fa-chevron-left"></i>`;
+  prevBtn.onclick = () => {
+    if (currentPage > 1) {
+      currentPage--;
+      updateUI();
+    }
   };
-  if (btnCloseModal) btnCloseModal.addEventListener("click", closeModalFunc);
-  if (btnCancelModal) btnCancelModal.addEventListener("click", closeModalFunc);
+  paginationContainer.appendChild(prevBtn);
 
-  if (formStaff) {
-    formStaff.addEventListener("submit", function (event) {
-      submitStaffForm(event, token);
-    });
+  // 2. Tính toán danh sách các trang cần hiển thị
+  let pages = [];
+  const delta = 1;
+
+  for (let i = 1; i <= totalPages; i++) {
+    if (
+      i === 1 ||
+      i === totalPages ||
+      (i >= currentPage - delta && i <= currentPage + delta)
+    ) {
+      pages.push(i);
+    }
+  }
+
+  // 3. Render số trang & chèn dấu "..."
+  let prevPage = null;
+  pages.forEach((page) => {
+    if (prevPage && page - prevPage > 1) {
+      const dots = document.createElement("div");
+      dots.className = "page-item page-dots";
+      dots.textContent = "...";
+      paginationContainer.appendChild(dots);
+    }
+
+    const pageItem = document.createElement("div");
+    pageItem.className = `page-item ${page === currentPage ? "active" : ""}`;
+    pageItem.textContent = page;
+    pageItem.onclick = () => {
+      currentPage = page;
+      updateUI();
+    };
+    paginationContainer.appendChild(pageItem);
+
+    prevPage = page;
+  });
+
+  // 4. Nút Tiến (Next)
+  const nextBtn = document.createElement("div");
+  nextBtn.className = `page-item ${currentPage === totalPages ? "disabled" : ""}`;
+  nextBtn.innerHTML = `<i class="fa-solid fa-chevron-right"></i>`;
+  nextBtn.onclick = () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      updateUI();
+    }
+  };
+  paginationContainer.appendChild(nextBtn);
+}
+
+function updateUI() {
+  renderTable(filteredData);
+  renderPagination(filteredData.length);
+}
+
+// Bắt sự kiện lọc theo chức vụ
+document.getElementById("roleFilter").addEventListener("change", (e) => {
+  const selectedRole = e.target.value;
+  if (selectedRole === "all") {
+    filteredData = [...employees];
+  } else {
+    filteredData = employees.filter((emp) => emp.role === selectedRole);
+  }
+  currentPage = 1;
+  updateStats(filteredData);
+  updateUI();
+});
+
+// ==========================================================================
+// III. LỰA CHỌN CA LÀM & TẦN SUẤT LÀM VIỆC (TOGGLE LOGIC)
+// ==========================================================================
+
+// 1. TOGGLE CHO CA LÀM VIỆC (Ấn lần 1: chọn, Ấn lần 2: hủy chọn)
+const shiftRadios = document.querySelectorAll('input[name="shiftType"]');
+shiftRadios.forEach((radio) => {
+  radio.addEventListener("click", function () {
+    if (this.wasChecked) {
+      this.checked = false;
+      this.wasChecked = false;
+    } else {
+      shiftRadios.forEach((r) => (r.wasChecked = false));
+      this.wasChecked = true;
+    }
+  });
+});
+
+// 2. TOGGLE CHO TẦN SUẤT LÀM VIỆC
+const scheduleRadios = document.querySelectorAll(
+  'input[name="schedulePattern"]',
+);
+const daysCheckboxGroup = document.getElementById("daysCheckboxGroup");
+
+scheduleRadios.forEach((radio) => {
+  radio.addEventListener("click", function () {
+    if (this.wasChecked) {
+      // Hủy chọn nếu bấm lần 2
+      this.checked = false;
+      this.wasChecked = false;
+      daysCheckboxGroup.style.display = "none";
+    } else {
+      // Bấm chọn
+      scheduleRadios.forEach((r) => (r.wasChecked = false));
+      this.wasChecked = true;
+
+      if (this.value === "custom") {
+        daysCheckboxGroup.style.display = "flex";
+      } else {
+        daysCheckboxGroup.style.display = "none";
+      }
+    }
+  });
+});
+
+// ==========================================================================
+// IV. XỬ LÝ QUẢN LÝ MODAL (THÊM / SỬA / XÓA)
+// ==========================================================================
+const empModal = document.getElementById("employeeModal");
+const deleteModal = document.getElementById("deleteModal");
+const empForm = document.getElementById("employeeForm");
+const avatarPreview = document.getElementById("avatarPreview");
+const localAvatarInput = document.getElementById("localAvatarInput");
+
+// Xử lý tải ảnh từ máy tính (Base64)
+localAvatarInput.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      const base64Url = event.target.result;
+      currentUploadedAvatar = base64Url;
+      avatarPreview.src = base64Url;
+    };
+    reader.readAsDataURL(file);
   }
 });
 
-/**
- * 🌟 HÀM TOÀN CỤC: Đón nhận từ khóa từ ô tìm kiếm chung của Dashboard truyền xuống
- */
-window.handleGlobalSearch = function (keyword) {
-  SEARCH_STAFF_KEYWORD = keyword.trim().toLowerCase();
-  filterAndRenderStaff(localStorage.getItem("petcare_token"));
-};
-
-/**
- * 🔄 Hàm xử lý: Lọc mảng dữ liệu sống dựa theo từ khóa nhận được từ Dashboard cha
- */
-function filterAndRenderStaff(token) {
-  const filteredStaffs = ALL_STAFFS_DATA.filter((st) => {
-    const textTarget =
-      `${st.staffCode} ${st.fullName} ${st.phone || ""}`.toLowerCase();
-    return textTarget.includes(SEARCH_STAFF_KEYWORD);
+// Chuyển Tab trong Modal
+const tabBtns = document.querySelectorAll(".tab-btn");
+tabBtns.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    tabBtns.forEach((b) => b.classList.remove("active"));
+    document
+      .querySelectorAll(".tab-content")
+      .forEach((c) => c.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
   });
-  renderStaffTable(filteredStaffs, token);
-}
+});
 
-/**
- * 📊 Gọi API lấy dữ liệu thực đút vào 4 ô Widgets tổng quan
- */
-async function loadAttendanceWidgetsData(token) {
-  try {
-    const response = await fetch(
-      `${BASE_URL}/attendance/admin/widgets-summary`,
-      {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    );
+// Mở Modal Thêm Mới Nhân Viên
+document.getElementById("btnOpenAddModal").addEventListener("click", () => {
+  editingEmpCode = null;
+  document.getElementById("modalTitle").innerHTML =
+    `<i class="fa-solid fa-user-plus"></i> Thêm nhân viên mới`;
+  document.getElementById("empCode").disabled = false;
+  empForm.reset();
 
-    if (response.ok) {
-      const summary = await response.json();
+  // Reset Ca làm việc về trạng thái chưa chọn
+  shiftRadios.forEach((r) => {
+    r.checked = false;
+    r.wasChecked = false;
+  });
 
-      if (document.getElementById("widgetTotalStaff")) {
-        document.getElementById("widgetTotalStaff").innerText =
-          summary.totalStaff;
-      }
-      if (document.getElementById("widgetPresent")) {
-        document.getElementById("widgetPresent").innerText =
-          summary.presentToday;
-      }
-      if (document.getElementById("widgetLateMonth")) {
-        document.getElementById("widgetLateMonth").innerText =
-          summary.lateThisMonth;
-      }
-      if (document.getElementById("widgetAbsentToday")) {
-        document.getElementById("widgetAbsentToday").innerText =
-          summary.absentToday;
-      }
-    }
-  } catch (error) {
-    console.error("🚨 Lỗi lấy dữ liệu Widgets chấm công:", error);
-  }
-}
+  // Reset Tần suất làm việc về trạng thái chưa chọn
+  scheduleRadios.forEach((r) => {
+    r.checked = false;
+    r.wasChecked = false;
+  });
 
-async function uploadStaffAvatarFile(file, token) {
-  const formData = new FormData();
-  formData.append("file", file);
+  currentUploadedAvatar = "https://i.pravatar.cc/150?img=12";
+  avatarPreview.src = currentUploadedAvatar;
+  daysCheckboxGroup.style.display = "none";
 
-  try {
-    const response = await fetch(`${BASE_URL}/upload/avatar`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
+  // Reset Tab về mặc định Tab 1
+  tabBtns[0].click();
 
-    if (response.ok) {
-      uploadedAvatarPath = await response.text();
-      document.getElementById("staffAvatarPreview").src =
-        getImageUrl(uploadedAvatarPath);
-      showLocalToast("Ảnh đại diện đã được tải lên máy chủ!", "success");
+  // Tạo Mã NV tự động
+  const nextNum = employees.length + 1;
+  document.getElementById("empCode").value =
+    `NV-A${nextNum < 100 ? (nextNum < 10 ? "00" + nextNum : "0" + nextNum) : nextNum}`;
+
+  empModal.classList.add("active");
+});
+
+// Mở Modal Xem & Chỉnh Sửa Nhân Viên
+function openEditModal(code) {
+  const emp = employees.find((e) => e.code === code);
+  if (!emp) return;
+
+  editingEmpCode = code;
+  document.getElementById("modalTitle").innerHTML =
+    `<i class="fa-regular fa-eye"></i> Thông tin & Chỉnh sửa NV`;
+
+  // Đổ dữ liệu vào Form
+  document.getElementById("empCode").value = emp.code;
+  document.getElementById("empCode").disabled = true; // Khóa không cho sửa Mã NV
+  document.getElementById("empName").value = emp.name;
+  document.getElementById("empRole").value = emp.role || "Chưa được gán";
+  document.getElementById("empPhone").value = emp.phone;
+  document.getElementById("empEmail").value = emp.email;
+  document.getElementById("empCccd").value = emp.cccd || "";
+  document.getElementById("empAddress").value = emp.address || "";
+  document.getElementById("empShiftSalary").value = emp.shiftSalary || "";
+  document.getElementById("empStatus").value = emp.status;
+
+  currentUploadedAvatar = emp.avatar || "https://i.pravatar.cc/150?img=12";
+  avatarPreview.src = currentUploadedAvatar;
+
+  // Set trạng thái Ca làm việc đã lưu
+  shiftRadios.forEach((r) => {
+    if (emp.shiftType && r.value === emp.shiftType) {
+      r.checked = true;
+      r.wasChecked = true;
     } else {
-      showLocalToast("Gặp lỗi khi xử lý tải ảnh!", "error");
+      r.checked = false;
+      r.wasChecked = false;
     }
-  } catch (error) {
-    console.error(error);
-  }
+  });
+
+  // Set trạng thái Tần suất làm việc đã lưu
+  scheduleRadios.forEach((r) => {
+    if (emp.schedulePattern && r.value === emp.schedulePattern) {
+      r.checked = true;
+      r.wasChecked = true;
+      daysCheckboxGroup.style.display =
+        emp.schedulePattern === "custom" ? "flex" : "none";
+    } else {
+      r.checked = false;
+      r.wasChecked = false;
+    }
+  });
+
+  // Reset Tab về mặc định Tab 1 khi mở
+  tabBtns[0].click();
+
+  empModal.classList.add("active");
 }
 
-async function initPositionsData(token) {
-  try {
-    const response = await fetch(`${BASE_URL}/positions/all`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (response.ok) {
-      listPositionsGlobal = await response.json();
-
-      const selectRole = document.getElementById("staffRole");
-      if (selectRole) {
-        selectRole.innerHTML = listPositionsGlobal
-          .map(
-            (p) =>
-              `<option value="${p.positionId}">${p.positionName} (${p.positionCode})</option>`,
-          )
-          .join("");
-      }
-
-      const dropdownListOptions = document.getElementById(
-        "dropdownListOptions",
-      );
-      if (dropdownListOptions) {
-        let htmlFilter = `<li data-value="ALL" class="active">Tất cả chức vụ</li>`;
-        htmlFilter += listPositionsGlobal
-          .map((p) => `<li data-value="${p.positionId}">${p.positionName}</li>`)
-          .join("");
-        dropdownListOptions.innerHTML = htmlFilter;
-        bindDropdownItemsEvent(token);
-      }
-    }
-  } catch (error) {
-    console.error(error);
-  }
+// Đóng Modal Thêm/Sửa
+function closeEmpModal() {
+  empModal.classList.remove("active");
 }
+document
+  .getElementById("btnCloseEmpModal")
+  .addEventListener("click", closeEmpModal);
+document
+  .getElementById("btnCancelEmpModal")
+  .addEventListener("click", closeEmpModal);
 
-/**
- * 🔄 Tải song song cả danh sách nhân viên lẫn trạng thái chấm công chi tiết
- */
-async function loadStaffsList(token) {
-  try {
-    const [staffsRes, attendanceRes] = await Promise.all([
-      fetch(`${BASE_URL}/staffs`, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      }),
-      fetch(`${BASE_URL}/attendance/admin/dashboard-status`, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      }),
-    ]);
+// Submit Form Thêm / Sửa Nhân Viên
+empForm.addEventListener("submit", (e) => {
+  e.preventDefault();
 
-    if (staffsRes.ok && attendanceRes.ok) {
-      ALL_STAFFS_DATA = await staffsRes.json();
-      ATTENDANCE_DASHBOARD_DATA = await attendanceRes.json();
+  const code = document.getElementById("empCode").value.trim();
+  const name = document.getElementById("empName").value.trim();
+  const role = document.getElementById("empRole").value;
+  const phone = document.getElementById("empPhone").value.trim();
+  const email = document.getElementById("empEmail").value.trim();
+  const cccd = document.getElementById("empCccd").value.trim();
+  const address = document.getElementById("empAddress").value.trim();
+  const shiftSalary = document.getElementById("empShiftSalary").value;
+  const status = document.getElementById("empStatus").value;
+  const avatar = currentUploadedAvatar;
 
-      ALL_STAFFS_DATA.sort((a, b) => {
-        if (!a.staffCode) return 1;
-        if (!b.staffCode) return -1;
-        return a.staffCode.localeCompare(b.staffCode, undefined, {
-          numeric: true,
-          sensitivity: "base",
-        });
-      });
+  const shiftType =
+    document.querySelector('input[name="shiftType"]:checked')?.value || "";
+  const schedulePattern =
+    document.querySelector('input[name="schedulePattern"]:checked')?.value ||
+    "";
 
-      // Render dữ liệu ra bảng
-      filterAndRenderStaff(token);
+  const today = new Date();
+  const formattedDate = `${String(today.getDate()).padStart(2, "0")}/${String(today.getMonth() + 1).padStart(2, "0")}/${today.getFullYear()}`;
 
-      // Đồng bộ cập nhật số liệu lên các ô Widgets
-      await loadAttendanceWidgetsData(token);
-    }
-  } catch (error) {
-    console.error("🚨 Lỗi đồng bộ danh sách và chấm công hệ thống:", error);
-  }
-}
-
-/**
- * 🔄 Khớp nối thông tin nhân viên với dữ liệu chấm công thực tế để render bảng
- */
-function renderStaffTable(staffs, token) {
-  const tbody = document.getElementById("tableStaffBody");
-  if (!tbody) return;
-
-  if (staffs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding: 20px; color: #999;">Không tìm thấy nhân viên nào phù hợp.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = staffs
-    .map((st) => {
-      // Tìm kiếm dữ liệu đối chiếu từ mảng ATTENDANCE_DASHBOARD_DATA thông qua staffId
-      const attInfo = ATTENDANCE_DASHBOARD_DATA.find(
-        (a) => a.staffId === st.staffId,
-      ) || {
-        todayCheckIn: "--:--",
-        todayStatus: "CHUA_CHECKIN",
-        totalLateInMonth: 0,
-        totalAbsentInMonth: 0,
+  if (editingEmpCode) {
+    // Cập nhật nhân viên hiện tại
+    const index = employees.findIndex((e) => e.code === editingEmpCode);
+    if (index !== -1) {
+      employees[index] = {
+        ...employees[index],
+        name,
+        role,
+        roleClass: getRoleClass(role),
+        phone,
+        email,
+        cccd,
+        address,
+        shiftSalary,
+        status,
+        statusClass: getStatusClass(status),
+        avatar,
+        shiftType,
+        schedulePattern,
       };
-
-      // Xác định badge trạng thái Check-in ngày hôm nay
-      let badgeHtml = "";
-      if (attInfo.todayStatus === "ON_TIME") {
-        badgeHtml = `<span class="badge-status on-time" style="background: #e6f7ed; color: #26af61; padding: 4px 8px; border-radius: 4px; border: 1px solid #b7ebc6; font-weight: 600;">Vào: ${attInfo.todayCheckIn} ✅</span>`;
-      } else if (attInfo.todayStatus === "LATE") {
-        badgeHtml = `<span class="badge-status late" style="background: #fffbe6; color: #faad14; padding: 4px 8px; border-radius: 4px; border: 1px solid #ffe58f; font-weight: 600;">Muộn: ${attInfo.todayCheckIn} ⏱️</span>`;
-      } else if (attInfo.todayStatus === "EARLY") {
-        badgeHtml = `<span class="badge-status early" style="background: #fff7e6; color: #ff9c6e; padding: 4px 8px; border-radius: 4px; border: 1px solid #ffd591; font-weight: 600;">Về sớm ⚠️</span>`;
-      } else if (attInfo.todayStatus === "ABSENT") {
-        badgeHtml = `<span class="badge-status absent" style="background: #fff1f0; color: #ff4d4f; padding: 4px 8px; border-radius: 4px; border: 1px solid #ffa39e; font-weight: 600;">Vắng mặt ❌</span>`;
-      } else {
-        badgeHtml = `<span class="badge-status badge-absent" style="background: #f5f5f5; color: #777; border-color: #ddd; padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd;">Chưa check-in</span>`;
-      }
-
-      return `
-        <tr>
-          <td style="font-weight: bold; color: #c25100">${st.staffCode}</td>
-          <td><div style="font-weight: 600;">${st.fullName}</div></td>
-          <td><span class="cstm-badge" style="background: #fdf0e6; color: #c25100; padding: 4px 8px; border-radius: 4px;">${st.positionName}</span></td>
-          
-          <td class="text-center">${badgeHtml}</td>
-          
-          <td class="text-center">
-            <span class="text-late-count" style="font-weight:700; color:#ff4d4f;">${attInfo.totalLateInMonth}</span> muộn / 
-            <span class="text-absent-count" style="font-weight:700; color:#777;">${attInfo.totalAbsentInMonth}</span> nghỉ
-          </td>
-          
-          <td>${st.phone || "Chưa có SĐT"}</td>
-          <td class="text-center">
-            <div class="cstm-action-group">
-              <button class="cstm-action-btn btn-history" onclick="openStaffAttendanceHistory(${st.staffId}, '${st.fullName}')" title="Xem lịch sử chấm công">
-                <i class="ri-calendar-check-line"></i> Công
-              </button>
-              <button class="cstm-action-btn btn-edit" onclick="openEditStaffModal(${st.staffId}, '${token}')">
-                  <i class="ri-edit-box-line"></i> Sửa
-              </button>
-              <button class="cstm-action-btn btn-delete" onclick="deleteStaffItem(${st.staffId}, '${st.fullName}', '${token}')">
-                  <i class="ri-delete-bin-line"></i> Xóa
-              </button>
-            </div>
-          </td>
-        </tr>
-      `;
-    })
-    .join("");
-}
-
-/**
- * Điều hướng liên thông sang tab xem công chi tiết của từng nhân sự
- */
-function openStaffAttendanceHistory(staffId, fullName) {
-  showLocalToast(`Đang mở dữ liệu công của nhân viên: ${fullName}`, "success");
-
-  if (window.parent && typeof window.parent.switchTab === "function") {
-    window.parent.location.href = `dashboard.html?tab=attendance&viewStaffId=${staffId}&viewStaffName=${encodeURIComponent(fullName)}`;
+    }
   } else {
-    window.location.href = `/staff/attendance/Attendance.html?token=${localStorage.getItem("petcare_token")}&viewStaffId=${staffId}`;
-  }
-}
-
-async function openEditStaffModal(staffId, token) {
-  try {
-    const response = await fetch(`${BASE_URL}/staffs/${staffId}`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (response.ok) {
-      const st = await response.json();
-
-      document.getElementById("staffId").value = st.staffId;
-      document.getElementById("staffCode").value = st.staffCode;
-      document.getElementById("staffName").value = st.fullName;
-      document.getElementById("staffEmail").value = st.email;
-      document.getElementById("staffPhone").value = st.phone;
-      document.getElementById("staffCccd").value = st.cccd;
-      document.getElementById("staffGender").value = st.gender;
-      document.getElementById("staffSalary").value = st.salary;
-      document.getElementById("staffSalaryBonus").value = st.bonus;
-      document.getElementById("staffRole").value = st.positionId;
-
-      document.getElementById("profileStaffName").innerText = st.fullName;
-      document.getElementById("profileStaffCode").innerText =
-        "Mã NV: " + st.staffCode;
-
-      uploadedAvatarPath = st.avatar;
-      document.getElementById("staffAvatarPreview").src = st.avatar
-        ? getImageUrl(st.avatar)
-        : DEFAULT_SVG_AVATAR;
-
-      document.getElementById("staffCodeGroup").style.display = "block";
-      document.getElementById("modalTitle").innerHTML =
-        "👤 Cập Nhật Hồ Sơ Nhân Viên";
-      document.getElementById("staffModal").style.display = "flex";
-    }
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-async function deleteStaffItem(staffId, staffName, token) {
-  if (
-    !confirm(
-      `Bạn có chắc chắn muốn xóa nhân viên "${staffName}" ra khỏi hệ thống?`,
-    )
-  )
-    return;
-
-  try {
-    const response = await fetch(`${BASE_URL}/staffs/${staffId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (response.ok) {
-      showLocalToast("🎉 Đã xóa nhân viên thành công!", "success");
-      loadStaffsList(token);
-    } else {
-      showLocalToast(
-        "Không thể xóa nhân viên này, đang vướng dữ liệu liên quan!",
-        "error",
-      );
-    }
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-async function submitStaffForm(event, token) {
-  event.preventDefault();
-
-  const staffId = document.getElementById("staffId").value;
-  const isUpdate = staffId !== "";
-  const email = document.getElementById("staffEmail").value.trim();
-
-  const staffData = {
-    fullName: document.getElementById("staffName").value.trim(),
-    gender: document.getElementById("staffGender").value,
-    email: email,
-    cccd: document.getElementById("staffCccd").value.trim(),
-    phone: document.getElementById("staffPhone").value.trim(),
-    positionId: parseInt(document.getElementById("staffRole").value),
-    salary: parseFloat(document.getElementById("staffSalary").value) || 0,
-    bonus: parseFloat(document.getElementById("staffSalaryBonus").value) || 0,
-    avatar: uploadedAvatarPath,
-  };
-
-  if (!isUpdate) {
-    const prefixUser = email.split("@")[0];
-    staffData.username = prefixUser + Math.floor(100 + Math.random() * 900);
-    staffData.password = "Staff@123";
+    // Thêm nhân viên mới
+    const newEmp = {
+      code,
+      name,
+      avatar,
+      role,
+      roleClass: getRoleClass(role),
+      phone,
+      email,
+      status,
+      statusClass: getStatusClass(status),
+      startDate: formattedDate,
+      cccd,
+      address,
+      shiftSalary,
+      shiftType,
+      schedulePattern,
+    };
+    employees.unshift(newEmp);
   }
 
-  const url = isUpdate ? `${BASE_URL}/staffs/${staffId}` : `${BASE_URL}/staffs`;
-  const method = isUpdate ? "PUT" : "POST";
-
-  try {
-    const response = await fetch(url, {
-      method: method,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(staffData),
-    });
-
-    if (response.ok) {
-      showLocalToast(
-        isUpdate ? "🎉 Cập nhật thành công!" : "🎉 Tuyển dụng thành công!",
-        "success",
-      );
-      document.getElementById("staffModal").style.display = "none";
-      loadStaffsList(token);
-    } else {
-      showLocalToast(
-        "Giao dịch thất bại, vui lòng check lại dữ liệu trùng lặp!",
-        "error",
-      );
-    }
-  } catch (error) {
-    console.error(error);
+  // Cập nhật Filter và giao diện
+  const currentRoleFilter = document.getElementById("roleFilter").value;
+  if (currentRoleFilter === "all") {
+    filteredData = [...employees];
+  } else {
+    filteredData = employees.filter((emp) => emp.role === currentRoleFilter);
   }
+
+  updateStats(employees);
+  updateUI();
+  closeEmpModal();
+});
+
+// Xử lý Modal Xóa
+function openDeleteModal(code) {
+  const emp = employees.find((e) => e.code === code);
+  if (!emp) return;
+
+  deletingEmpCode = code;
+  document.getElementById("deleteEmpName").textContent = emp.name;
+  document.getElementById("deleteEmpCode").textContent = emp.code;
+  deleteModal.classList.add("active");
 }
 
-function initDropdownFilter(token) {
-  const dropdown = document.getElementById("dropdownFilterRole");
-  const selectedText = document.getElementById("dropdownSelectedText");
-  if (!dropdown || !selectedText) return;
-  selectedText.addEventListener("click", (e) => {
-    e.stopPropagation();
-    dropdown.classList.toggle("open");
-  });
-  document.addEventListener("click", () => dropdown.classList.remove("open"));
+function closeDeleteModal() {
+  deleteModal.classList.remove("active");
+  deletingEmpCode = null;
 }
 
-function bindDropdownItemsEvent(token) {
-  const items = document.querySelectorAll("#dropdownListOptions li");
-  const selectedText = document.getElementById("dropdownSelectedText");
+document
+  .getElementById("btnCloseDeleteModal")
+  .addEventListener("click", closeDeleteModal);
+document
+  .getElementById("btnCancelDelete")
+  .addEventListener("click", closeDeleteModal);
 
-  items.forEach((item) => {
-    item.addEventListener("click", async function () {
-      items.forEach((li) => li.classList.remove("active"));
-      this.classList.add("active");
-      selectedText.innerHTML = `${this.innerText} <i class="ri-arrow-down-s-line dropdown-icon-arrow"></i>`;
+document.getElementById("btnConfirmDelete").addEventListener("click", () => {
+  if (!deletingEmpCode) return;
 
-      const posVal = this.getAttribute("data-value");
-      let urlSearch = `${BASE_URL}/staffs/search`;
-      if (posVal !== "ALL") urlSearch += `?positionId=${posVal}`;
-
-      try {
-        const response = await fetch(urlSearch, {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (response.ok) {
-          ALL_STAFFS_DATA = await response.json();
-
-          ALL_STAFFS_DATA.sort((a, b) => {
-            if (!a.staffCode) return 1;
-            if (!b.staffCode) return -1;
-            return a.staffCode.localeCompare(b.staffCode, undefined, {
-              numeric: true,
-              sensitivity: "base",
-            });
-          });
-
-          filterAndRenderStaff(token);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    });
-  });
-}
-
-function getImageUrl(path) {
-  if (!path) return "";
-  if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  return SERVER_HOST + path;
-}
-
-function showLocalToast(message, type = "success") {
-  let container = document.getElementById("pet-toast-container");
-  if (!container) {
-    container = document.createElement("div");
-    container.id = "pet-toast-container";
-    document.body.appendChild(container);
+  const index = employees.findIndex((e) => e.code === deletingEmpCode);
+  if (index !== -1) {
+    employees.splice(index, 1);
   }
-  const toast = document.createElement("div");
-  toast.style.cssText =
-    "position: fixed; top: 20px; right: 20px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 12px 20px; border-radius: 8px; z-index: 9999; display: flex; align-items: center; gap: 10px; border-left: 5px solid " +
-    (type === "success" ? "#28a745" : "#dc3545");
-  toast.innerHTML = `<span>${type === "success" ? "🎉" : "❌"}</span> <span>${message}</span>`;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
-}
 
-/**
- * 🌟 7. LẮNG NGHE THÔNG ĐIỆP TÌM KIẾM BẮN XUYÊN IFRAME TỪ DASHBOARD CHA
- */
-window.addEventListener("message", function (event) {
-  // Kiểm tra nguồn gốc nếu cần thiết, hoặc chỉ lọc khi đúng action SEARCH_STAFF
-  if (event.data && event.data.action === "SEARCH_CUSTOMER") {
-    // Chuyển hướng từ khóa sang hàm tìm kiếm toàn cục của StaffManagement
-    const keyword = event.data.keyword || "";
-    if (typeof window.handleGlobalSearch === "function") {
-      window.handleGlobalSearch(keyword);
-    }
+  const currentRoleFilter = document.getElementById("roleFilter").value;
+  if (currentRoleFilter === "all") {
+    filteredData = [...employees];
+  } else {
+    filteredData = employees.filter((emp) => emp.role === currentRoleFilter);
   }
+
+  updateStats(employees);
+  updateUI();
+  closeDeleteModal();
+});
+
+// Khởi chạy ứng dụng ban đầu
+document.addEventListener("DOMContentLoaded", () => {
+  updateStats(employees);
+  updateUI();
 });

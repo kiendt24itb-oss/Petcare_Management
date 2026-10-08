@@ -1,0 +1,448 @@
+:root {
+  --bg-light: #faf8f5;
+  --card-bg: #ffffff;
+  --text-main: #222222;
+  --text-muted: #718096;
+  --primary-orange: #ff733c;
+  --primary-orange-hover: #e55e28;
+  --primary-orange-light: #fff8f5;
+
+  --icon-orange-bg: #fff0eb;
+  --icon-orange-color: #ff733c;
+  --icon-purple-bg: #f3eefb;
+  --icon-purple-color: #8b5cf6;
+  --icon-green-bg: #e6f4ea;
+  --icon-green-color: #2ece77;
+  --icon-blue-bg: #eebf6ff;
+  --icon-blue-color: #3b82f6;
+
+  --border-color: #edf2f7;
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.03);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+}
+
+body {
+  background-color: var(--bg-light);
+  color: var(--text-main);
+  padding: clamp(
+    16px,
+    2.5vw,
+    32px
+  ); /* Padding linh hoạt theo độ rộng màn hình */
+}
+
+/* ==========================================================================
+   🎯 ĐÃ TỐI ƯU CONTAINER: Bỏ max-width: 1080px -> Tự động tràn rộng full màn
+   ========================================================================== */
+.overview-container {
+  width: 100%;
+  max-width: 1650px; /* Cho phép mở rộng tối đa lên đến 1650px trên màn hình máy tính lớn */
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ================= HERO BANNER (Đồng bộ với ServiceBooking) ================= */
+.hero-banner {
+  position: relative;
+  width: 100%;
+  height: clamp(160px, 15vw, 220px);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background-color: #fbf3eb;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+}
+
+.banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: right center;
+  display: block;
+}
+
+.banner-content {
+  position: absolute;
+  top: 50%;
+  left: 4%;
+  transform: translateY(-50%);
+  max-width: 550px;
+  z-index: 2;
+}
+
+.badge-subtitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.icon-heart {
+  color: #ff6b4a;
+}
+
+.banner-title {
+  font-size: clamp(20px, 2.2vw, 30px);
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+
+.banner-desc {
+  font-size: 13px;
+  color: #555555;
+  line-height: 1.4;
+}
+
+/* Responsive cho banner */
+@media (max-width: 576px) {
+  .hero-banner {
+    height: auto;
+    flex-direction: column;
+  }
+  .banner-content {
+    position: relative;
+    top: 0;
+    left: 0;
+    transform: none;
+    max-width: 100%;
+    padding: 18px;
+  }
+}
+
+/* ================= METRICS GRID (3 CỘT) ================= */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(280px, 1fr)
+  ); /* Dàn trải tự động */
+  gap: 20px;
+}
+
+.metric-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.metric-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.icon-orange {
+  background-color: var(--icon-orange-bg);
+  color: var(--icon-orange-color);
+}
+.icon-purple {
+  background-color: var(--icon-purple-bg);
+  color: var(--icon-purple-color);
+}
+.icon-green {
+  background-color: var(--icon-green-bg);
+  color: var(--icon-green-color);
+}
+
+.metric-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.metric-value {
+  font-size: 26px;
+  font-weight: 800;
+  margin: 2px 0;
+  color: #111;
+}
+
+.metric-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.metric-link {
+  font-size: 12px;
+  color: var(--icon-purple-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* ================= BOOKING CTA BANNER ================= */
+.booking-cta-banner {
+  background: #fff8f5;
+  border: 1px solid #ffe8dd;
+  border-radius: var(--radius-lg);
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.cta-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cta-icon {
+  width: 50px;
+  height: 50px;
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: var(--primary-orange);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.cta-info h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.cta-info p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.btn-primary {
+  background-color: var(--primary-orange);
+  color: #ffffff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-orange-hover);
+}
+
+/* ================= MAIN GRID (2 CỘT TỰ CO GIÃN) ================= */
+.main-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.card-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-header {
+  color: var(--primary-orange);
+}
+
+.header-link {
+  font-size: 12px;
+  color: var(--primary-orange);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* List Thông báo */
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notif-item {
+  background: #fcfbfa;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notif-item-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.notif-content {
+  flex-grow: 1;
+}
+
+.notif-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 2px;
+}
+
+.notif-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.notif-time-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.dot-unread {
+  width: 6px;
+  height: 6px;
+  background-color: var(--primary-orange);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Grid Bé cưng */
+.pets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.pet-item-card {
+  background: #fdfbf8;
+  border: 1px solid #f5ede6;
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.pet-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.pet-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 2px;
+}
+
+.pet-breed {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.pet-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.btn-pet-detail {
+  width: 100%;
+  padding: 6px 12px;
+  background: #fff;
+  border: 1px solid #ffe3d6;
+  color: var(--primary-orange);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-pet-detail:hover {
+  background: var(--primary-orange);
+  color: #ffffff;
+}
+
+/* Responsive Scaling */
+@media (max-width: 868px) {
+  .metrics-grid,
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+}

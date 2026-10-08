@@ -4,16 +4,60 @@
   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
 />
 
-  <div class="pet-grid">
-    <div class="pet-card add-pet-trigger" id="openModalBtn">
-      <div class="add-icon-circle">
-        <i class="fa-solid fa-plus"></i>
+<div class="pet-wrapper">
+  <div class="pet-container">
+    <!-- BANNER TỔNG QUAN -->
+    <div class="pet-banner">
+      <div class="banner-content">
+        <div class="banner-icon"><i class="fa-solid fa-paw"></i></div>
+        <div>
+          <h2 class="banner-title">Thông tin thú cưng</h2>
+          <p class="banner-subtitle">
+            Quản lý và cập nhật thông tin các bé thú cưng của bạn.
+          </p>
+        </div>
       </div>
-      <span class="add-text">Thêm Bé Cưng</span>
+      <!-- Ảnh chó mèo minh họa góc phải banner -->
+      <img
+        src="../../uploads/BannerSV.png"
+        alt="Pet Mascot"
+        class="banner-mascot-img"
+      />
+    </div>
+
+    <!-- THANH TIÊU ĐỀ & NÚT THÊM -->
+    <div class="pet-section-header">
+      <h3 class="section-title">
+        <i class="fa-solid fa-paw"></i> Danh sách thú cưng
+      </h3>
+      <button type="button" class="btn-add-pet-top" id="btnTopAddPet">
+        <i class="fa-solid fa-plus"></i> Thêm thú cưng
+      </button>
+    </div>
+
+    <!-- DANH SÁCH LƯỚI CARD -->
+    <div class="pet-grid"></div>
+
+    <!-- FOOTER LƯU Ý (Luôn cố định cuối trang) -->
+    <div class="pet-footer-notice">
+      <div class="notice-left">
+        <i class="fa-solid fa-paw notice-icon"></i>
+        <div>
+          <strong>Lưu ý</strong>
+          <p>
+            Hãy cập nhật thông tin thú cưng đầy đủ để chúng tôi có thể phục vụ
+            tốt nhất cho bé yêu của bạn.
+          </p>
+        </div>
+      </div>
+      <button type="button" class="btn-guide">
+        <i class="fa-solid fa-book-open"></i> Hướng dẫn quản lý
+      </button>
     </div>
   </div>
 </div>
 
+<!-- MODAL SLIDE SIDEBAR -->
 <div class="pet-modal-overlay" id="petModal">
   <div class="pet-modal-card">
     <div class="modal-header">
@@ -93,14 +137,14 @@
 
       <div class="modal-field-row">
         <div class="modal-field-group">
-          <label class="modal-label">Tuổi (Tháng/Tuổi)</label>
+          <label class="modal-label">Tuổi (Tháng)</label>
           <input
             type="number"
             name="age"
             id="modalPetAge"
-            placeholder="Số tuổi..."
+            placeholder="Số tháng..."
             min="0"
-            max="50"
+            max="240"
             class="modal-input"
           />
         </div>
@@ -110,7 +154,7 @@
             type="number"
             name="weight"
             id="modalWeight"
-            placeholder="Ví dụ: 4.5"
+            placeholder="4.5"
             step="0.1"
             min="0"
             class="modal-input"
@@ -137,11 +181,11 @@
       </div>
 
       <div class="modal-field-group">
-        <label class="modal-label">Ghi chú sức khỏe / Dị ứng</label>
+        <label class="modal-label">Ghi chú sức khỏe / Đặc điểm</label>
         <textarea
           name="healthNote"
           id="modalHealthNote"
-          placeholder="Bé có bị dị ứng thuốc, thức ăn hay đang có bệnh lý gì không..."
+          placeholder="Năng động, dị ứng thức ăn..."
           class="modal-textarea"
           rows="2"
         ></textarea>

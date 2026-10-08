@@ -1,183 +1,261 @@
-// =============================================================================
-// 🗄️ FILE: Staff_schedule.js
-// Xử lý Liên thông dữ liệu lịch trình của Nhân viên với Server (Gọi API Real-time)
-// =============================================================================
+/**
+ * 📅 FILE: Staff_schedule.js
+ * Quản lý lịch trình công việc Nhân viên (Dữ liệu Demo nâng cấp)
+ */
 
-// 🌐 Cấu hình địa chỉ Server tập trung - Sửa một nơi, áp dụng toàn bộ file
-const SERVER_HOST = "http://localhost:8080";
-const BASE_URL = `${SERVER_HOST}/api`;
+// DỮ LIỆU DEMO LỊCH HẸN PHONG PHÚ (HÔM NAY, NGÀY MAI, THÁNG NÀY)
+let demoBookings = [
+  {
+    bookingId: 1001,
+    bookingCode: "BK-1001",
+    customerName: "Nguyễn Văn An",
+    customerPhone: "0905 123 456",
+    petName: "Miu Miu",
+    roomName: "P-01",
+    serviceName: "Tắm Rửa + Sấy Lông + Vệ Sinh Tai",
+    totalPrice: 250000,
+    bookingTime: "08:30",
+    dateType: "TODAY", // Hôm nay
+    status: "WAITING",
+    note: "Bé sợ tiếng máy sấy to, nhờ shop sấy nhẹ tay.",
+  },
+  {
+    bookingId: 1002,
+    bookingCode: "BK-1002",
+    customerName: "Trần Thị Bích",
+    customerPhone: "0914 888 999",
+    petName: "Bim Bim",
+    roomName: "P-02",
+    serviceName: "Combo Cắt Tỉa Lông Toàn Diện",
+    totalPrice: 450000,
+    bookingTime: "09:45",
+    dateType: "TODAY",
+    status: "PROCESSING",
+    note: "Cắt kiểu Cún Bông Bear, chừa phần lông đuôi tròn.",
+  },
+  {
+    bookingId: 1003,
+    bookingCode: "BK-1003",
+    customerName: "Lê Hoàng Nam",
+    customerPhone: "0988 555 222",
+    petName: "Gấu Corgi",
+    roomName: "P-04",
+    serviceName: "Khám Sức Khỏe Tổng Quát",
+    totalPrice: 380000,
+    bookingTime: "11:00",
+    dateType: "TODAY",
+    status: "WAITING",
+    note: "Bé tới lịch tiêm mũi 3 hàng năm.",
+  },
+  {
+    bookingId: 1004,
+    bookingCode: "BK-1004",
+    customerName: "Phạm Minh Khoa",
+    customerPhone: "0935 777 111",
+    petName: "Mochi Mèo",
+    roomName: "VIP-01",
+    serviceName: "Lưu Trú Pet Hotel",
+    totalPrice: 600000,
+    bookingTime: "14:00",
+    dateType: "TODAY",
+    status: "COMPLETED",
+    note: "Gửi bé 2 ngày, hạt thức ăn đã bỏ sẵn trong balo.",
+  },
+  {
+    bookingId: 1005,
+    bookingCode: "BK-1005",
+    customerName: "Đặng Thu Thảo",
+    customerPhone: "0901 222 333",
+    petName: "Lucky Golden",
+    roomName: "P-03",
+    serviceName: "Tắm Thảo Dược Trị Nấm",
+    totalPrice: 320000,
+    bookingTime: "08:00",
+    dateType: "TOMORROW", // Ca sáng ngày mai -> Xem để biết đi ngủ sớm!
+    status: "WAITING",
+    note: "Ca sớm ngày mai, chuẩn bị nước ấm.",
+  },
+  {
+    bookingId: 1006,
+    bookingCode: "BK-1006",
+    customerName: "Vũ Quốc Anh",
+    customerPhone: "0977 444 888",
+    petName: "Bơ Chinchilla",
+    roomName: "P-05",
+    serviceName: "Spa Thư Giãn + Cạo Răng",
+    totalPrice: 280000,
+    bookingTime: "10:30",
+    dateType: "TOMORROW",
+    status: "WAITING",
+    note: "Khách đặt hẹn trước sáng mai.",
+  },
+  {
+    bookingId: 1007,
+    bookingCode: "BK-1007",
+    customerName: "Ngô Thanh Vân",
+    customerPhone: "0966 111 222",
+    petName: "Cún Milu",
+    roomName: "P-02",
+    serviceName: "Cắt Tỉa Lông + Nhuộm Tai",
+    totalPrice: 500000,
+    bookingTime: "15:00",
+    dateType: "MONTH", // Trong tháng
+    status: "COMPLETED",
+    note: "Hoàn thành tuần trước.",
+  },
+];
 
-// Bộ nhớ tạm lưu trữ danh sách lịch đặt thật từ API đổ về và ID đơn đang chọn
-let realBookings = [];
-let activeFilter = "ALL";
+let activeTimeFilter = "TODAY";
+let activeStatusFilter = "ALL";
 let selectedBookingId = null;
-let currentToken = null; // Lưu token dùng chung cho các hàm hành động
 
 document.addEventListener("DOMContentLoaded", function () {
-  // 🔑 Nhặt token trực tiếp chuẩn bảo mật 3 tầng giống hệt bên Profile
-  const urlParams = new URLSearchParams(window.location.search);
-  let token = urlParams.get("token");
+  renderBookingGrid();
 
-  if (!token) {
-    token = localStorage.getItem("petcare_token");
-  }
-  if (!token && window.parent && window.parent.localStorage) {
-    token = window.parent.localStorage.getItem("petcare_token");
-  }
-
-  // 🧹 KIỂM TRA & CHẶN TOKEN HẾT HẠN TỪ VÒNG GỬI XE
-  if (
-    token === "null" ||
-    token === "undefined" ||
-    !token ||
-    token.trim() === ""
-  ) {
-    console.error("❌ Front-End chặn đứng: Không tìm thấy Token hợp lệ!");
-    showLocalToast("Phiên làm việc hết hạn. Vui lòng đăng nhập lại!", "error");
-    return;
-  }
-
-  currentToken = token; // Gán vào biến toàn cục để tái sử dụng
-  console.log("🔒 Đăng nhập lịch trình thông quan thành công!");
-
-  // 🚀 Lấy dữ liệu thật từ Server đổ lên lưới danh sách
-  fetchStaffSchedule();
-
-  // 1. Gán sự kiện bộ lọc (Tabs)
-  const filterBtns = document.querySelectorAll(".btn-filter");
-  filterBtns.forEach((btn) => {
+  // 1. Lắng nghe Lọc Thời Gian (Hôm nay / Ngày mai / Tháng này)
+  const timeBtns = document.querySelectorAll(".btn-filter-time");
+  timeBtns.forEach((btn) => {
     btn.addEventListener("click", (e) => {
-      filterBtns.forEach((b) => b.classList.remove("active"));
-      e.target.classList.add("active");
-      activeFilter = e.target.getAttribute("data-filter");
+      timeBtns.forEach((b) => b.classList.remove("active"));
+      const target = e.currentTarget;
+      target.classList.add("active");
+      activeTimeFilter = target.getAttribute("data-time");
       renderBookingGrid();
     });
   });
 
-  // 2. Đóng Modal
+  // 2. Lắng nghe Lọc Trạng Thái
+  const statusBtns = document.querySelectorAll(".btn-filter");
+  statusBtns.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      statusBtns.forEach((b) => b.classList.remove("active"));
+      const target = e.currentTarget;
+      target.classList.add("active");
+      activeStatusFilter = target.getAttribute("data-filter");
+      renderBookingGrid();
+    });
+  });
+
+  // 3. Đóng Modal
   document.getElementById("close-modal").addEventListener("click", closeModal);
   window.addEventListener("click", (e) => {
     if (e.target === document.getElementById("task-modal")) closeModal();
   });
 
-  // 3. Lắng nghe nút [BẮT ĐẦU LÀM] -> Gọi API Vào ca sớm
-  document
-    .getElementById("btn-start-task")
-    .addEventListener("click", async () => {
-      if (!selectedBookingId) return;
-      // ✅ GIỮ NGUYÊN: Khớp chuẩn SecurityConfig đường dẫn /api/bookings/staff/...
-      await handleUpdateStatus(
-        `staff/start-early/${selectedBookingId}`,
-        "Bắt đầu làm",
-      );
+  // 4. Toggle Form Yêu Cầu Đổi Phòng Sự Cố
+  const btnToggleRoom = document.getElementById("btn-toggle-room-change");
+  const roomForm = document.getElementById("room-change-form");
+  if (btnToggleRoom) {
+    btnToggleRoom.addEventListener("click", () => {
+      const isHidden = roomForm.style.display === "none";
+      roomForm.style.display = isHidden ? "flex" : "none";
     });
+  }
 
-  // 4. Lắng nghe nút [HOÀN THÀNH CA] -> Gọi API Hoàn thành sớm chủ động
+  // 5. Gửi Yêu Cầu Đổi Phòng Sự Cố
   document
-    .getElementById("btn-complete-task")
-    .addEventListener("click", async () => {
-      if (!selectedBookingId) return;
-      // ✅ GIỮ NGUYÊN: Khớp chuẩn SecurityConfig đường dẫn /api/bookings/staff/...
-      await handleUpdateStatus(
-        `staff/complete-early/${selectedBookingId}`,
-        "Hoàn thành ca",
-      );
-    });
+    .getElementById("btn-submit-room-change")
+    .addEventListener("click", function () {
+      const newRoom = document.getElementById("select-new-room").value;
+      const reason = document.getElementById("input-room-reason").value.trim();
 
-  // 5. Lắng nghe nút [HỦY LỊCH] -> Gọi API Nhân viên hủy ca
-  document
-    .getElementById("btn-cancel-task")
-    .addEventListener("click", async () => {
-      if (!selectedBookingId) return;
-      const reason = prompt("Ní vui lòng nhập lý do hủy đơn này (bắt buộc):");
-      if (reason === null) return; // Bấm hủy prompt
-
-      if (!reason.trim()) {
+      if (!reason) {
         showLocalToast(
-          "Ní phải nhập lý do thì hệ thống mới cho hủy nha!",
+          "Vui lòng nhập lý do sự cố để Lễ tân / Admin duyệt!",
           "error",
         );
         return;
       }
 
-      // ✅ GIỮ NGUYÊN: Khớp chuẩn SecurityConfig đường dẫn /api/bookings/staff/...
-      await handleUpdateStatus(
-        `staff/cancel/${selectedBookingId}?reason=${encodeURIComponent(reason)}`,
-        "Hủy lịch",
+      showLocalToast(
+        `📩 Đã gửi yêu cầu chuyển sang ${newRoom} cho Lễ tân duyệt!`,
+        "success",
       );
+      roomForm.style.display = "none";
+      document.getElementById("input-room-reason").value = "";
+    });
+
+  // 6. Nút [BẮT ĐẦU LÀM]
+  document
+    .getElementById("btn-start-task")
+    .addEventListener("click", function () {
+      updateStatus(selectedBookingId, "PROCESSING", "Đã bắt đầu ca làm việc!");
+    });
+
+  // 7. Nút [HOÀN THÀNH CA]
+  document
+    .getElementById("btn-complete-task")
+    .addEventListener("click", function () {
+      updateStatus(
+        selectedBookingId,
+        "COMPLETED",
+        "🎉 Đã hoàn thành xuất sắc ca làm!",
+      );
+    });
+
+  // 8. Nút [HỦY LỊCH]
+  document
+    .getElementById("btn-cancel-task")
+    .addEventListener("click", function () {
+      const reason = prompt("Nhập lý do hủy ca này:");
+      if (reason === null) return;
+      if (!reason.trim()) {
+        showLocalToast("Vui lòng nhập lý do hủy!", "error");
+        return;
+      }
+      updateStatus(selectedBookingId, "CANCELLED", "Đã báo hủy ca!");
     });
 });
 
-// =============================================================================
-// 📥 HÀM GỌI API LẤY DANH SÁCH LỊCH ĐẶT CỦA KHÁCH HÀNG (ĐÃ SỬA LỖI 403)
-// =============================================================================
-async function fetchStaffSchedule() {
-  try {
-    // ✅ CHUẨN HOÁ: Gọi vào đầu phân luồng thông minh, Backend tự bóc Token để trả đúng lịch của Staff
-    const response = await fetch(`${BASE_URL}/bookings/my-bookings`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${currentToken}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (response.ok) {
-      realBookings = await response.json();
-      console.log("📅 Dữ liệu lịch trình thực tế:", realBookings);
-      renderBookingGrid();
-    } else {
-      showLocalToast(
-        `Không thể lấy danh sách ca làm việc! Mã lỗi: ${response.status}`,
-        "error",
-      );
-    }
-  } catch (error) {
-    console.error("Lỗi kết nối API lịch hẹn:", error);
-    showLocalToast("Mất kết nối đường truyền tới máy chủ!", "error");
-  }
-}
-
-// =============================================================================
-// 🔄 HÀM ĐỔ DỮ LIỆU CARD LÊN GIAO DIỆN CHÍNH (ĐÃ CHUẨN HÓA SỬ DỤNG DATA THẬT)
-// =============================================================================
+/**
+ * 🔄 Đổ dữ liệu Card lên lưới (Kết hợp Lọc kép)
+ */
 function renderBookingGrid() {
   const grid = document.getElementById("booking-grid-list");
   if (!grid) return;
 
-  // Lọc theo tab trạng thái đang chọn
-  let filteredData = realBookings.filter((item) => {
-    if (activeFilter === "ALL") return true;
-    return item.status === activeFilter;
+  let filteredData = demoBookings.filter((item) => {
+    // Lọc theo thời gian
+    let matchTime = true;
+    if (activeTimeFilter === "TODAY") matchTime = item.dateType === "TODAY";
+    else if (activeTimeFilter === "TOMORROW")
+      matchTime = item.dateType === "TOMORROW";
+
+    // Lọc theo trạng thái
+    let matchStatus = true;
+    if (activeStatusFilter !== "ALL")
+      matchStatus = item.status === activeStatusFilter;
+
+    return matchTime && matchStatus;
   });
 
   if (filteredData.length === 0) {
-    grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #a0aec0; padding: 40px 0;">Không có ca làm việc nào ở trạng thái này.</p>`;
+    grid.innerHTML = `
+      <div style="grid-column: 1/-1; text-align: center; color: #a0aec0; padding: 48px 0;">
+        <i class="fa-regular fa-calendar-xmark" style="font-size: 38px; margin-bottom: 10px; opacity: 0.5;"></i>
+        <p style="font-size: 13.5px;">Không có ca làm việc nào phù hợp với bộ lọc.</p>
+      </div>`;
     return;
   }
 
   let html = "";
   filteredData.forEach((item) => {
-    const firstDetail =
-      item.details && item.details.length > 0 ? item.details[0] : null;
-    const petDisplay = firstDetail ? firstDetail.petName : "Thú cưng";
-    const serviceDisplay = firstDetail
-      ? firstDetail.serviceName
-      : "Dịch vụ đã đăng ký";
-
     html += `
       <div class="booking-card ${item.status}" onclick="openTaskDetails(${item.bookingId})">
         <div class="card-top">
-          <span class="booking-id">${item.bookingCode}</span>
+          <span class="booking-id">#${item.bookingCode}</span>
           <span class="badge ${item.status}">${translateStatus(item.status)}</span>
         </div>
-        <div class="card-pet">
-          <i class="fa-solid fa-paw" style="color:var(--primary-color)"></i> Bé: ${petDisplay}
+        <div>
+          <div class="card-pet">
+            <i class="fa-solid fa-paw" style="color:var(--primary-orange)"></i> ${item.petName}
+            <span class="card-room-tag">🏠 ${item.roomName}</span>
+          </div>
+          <div class="card-service">${item.serviceName}</div>
         </div>
-        <div class="card-service">${serviceDisplay} ${item.details.length > 1 ? `(+${item.details.length - 1})` : ""}</div>
         <div class="card-bottom">
           <span><i class="fa-regular fa-user"></i> Khách: <b>${item.customerName}</b></span>
-          <span><i class="fa-regular fa-clock"></i> <b>${item.bookingTime.substring(0, 5)}</b></span>
+          <span><i class="fa-regular fa-clock"></i> <b>${item.bookingTime}</b></span>
         </div>
       </div>
     `;
@@ -185,32 +263,28 @@ function renderBookingGrid() {
   grid.innerHTML = html;
 }
 
-// =============================================================================
-// 👁️ MỞ MODAL XEM CHI TIẾT & ĐIỀU KHIỂN NÚT BẤM REAL-TIME
-// =============================================================================
+/**
+ * 👁️ Mở Modal Chi tiết
+ */
 function openTaskDetails(id) {
   selectedBookingId = id;
-  const task = realBookings.find((item) => item.bookingId === id);
+  const task = demoBookings.find((item) => item.bookingId === id);
   if (!task) return;
 
-  const firstDetail =
-    task.details && task.details.length > 0 ? task.details[0] : null;
+  // Reset ẩn form đổi phòng
+  document.getElementById("room-change-form").style.display = "none";
 
   document.getElementById("md-booking-id").innerText = `#${task.bookingCode}`;
   document.getElementById("md-customer-name").innerText = task.customerName;
-  document.getElementById("md-customer-phone").innerText =
-    "Đã bảo mật qua Token";
-  document.getElementById("md-pet-info").innerText = firstDetail
-    ? `Bé ${firstDetail.petName} (Phòng: ${firstDetail.roomName})`
-    : "Chưa có thông tin";
-  document.getElementById("md-service-name").innerText = firstDetail
-    ? firstDetail.serviceName
-    : "Chưa chỉ định";
+  document.getElementById("md-customer-phone").innerText = task.customerPhone;
+  document.getElementById("md-pet-info").innerText =
+    `${task.petName} (Phòng ${task.roomName})`;
+  document.getElementById("md-service-name").innerText = task.serviceName;
   document.getElementById("md-service-price").innerText = formatVND(
     task.totalPrice,
   );
   document.getElementById("md-booking-time").innerText =
-    `${task.bookingTime.substring(0, 5)} - ${formatDate(task.bookingDate)}`;
+    `${task.bookingTime} (${task.dateType === "TODAY" ? "Hôm nay" : "Ngày mai"})`;
   document.getElementById("md-customer-note").innerText = task.note
     ? `"${task.note}"`
     : "Khách không để lại ghi chú.";
@@ -244,71 +318,32 @@ function closeModal() {
   document.getElementById("task-modal").classList.remove("open");
 }
 
-// =============================================================================
-// 🚀 TRUNG TÂM XỬ LÝ GỌI CÁC API THAY ĐỔI TRẠNG THÁI (PUT)
-// =============================================================================
-async function handleUpdateStatus(endpoint, actionName) {
-  try {
-    // ✅ ĐÃ KIỂM TRA: Nối chuỗi mượt mà ra chuẩn URL /api/bookings/staff/...
-    const response = await fetch(`${BASE_URL}/bookings/${endpoint}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${currentToken}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (response.ok) {
-      showLocalToast(
-        `🎉 Thực hiện thao tác [${actionName}] thành công!`,
-        "success",
-      );
-      closeModal();
-      fetchStaffSchedule(); // Tải lại dữ liệu đồng bộ giao diện
-    } else {
-      const errorText = await response.text();
-      showLocalToast(
-        `Thao tác thất bại: ${errorText || response.status}`,
-        "error",
-      );
-    }
-  } catch (error) {
-    console.error(`Lỗi thực hiện tác vụ ${actionName}:`, error);
-    showLocalToast("Mất kết nối đường truyền mạng!", "error");
+function updateStatus(id, newStatus, msg) {
+  const task = demoBookings.find((item) => item.bookingId === id);
+  if (task) {
+    task.status = newStatus;
+    showLocalToast(msg, newStatus === "CANCELLED" ? "error" : "success");
+    closeModal();
+    renderBookingGrid();
   }
 }
 
-// =============================================================================
-// 🛠️ HÀM BỔ TRỢ CHUYỂN ĐỔI NGÔN NGỮ & TIỀN TỆ ĐỒNG BỘ HỆ THỐNG
-// =============================================================================
 function translateStatus(status) {
   switch (status) {
     case "WAITING":
-      return "Đang đợi ⏱️";
+      return "Chờ làm ⏱️";
     case "PROCESSING":
-      return "Đang làm đồ 🛁";
+      return "Đang làm 🛁";
     case "COMPLETED":
       return "Đã xong ✅";
     case "CANCELLED":
       return "Đã hủy ❌";
-    case "PENDING_APPROVAL":
-      return "Chờ duyệt 👑";
-    case "REJECTED":
-      return "Từ chối ✖️";
     default:
       return status;
   }
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return "";
-  const parts = dateStr.split("-");
-  if (parts.length !== 3) return dateStr;
-  return `${parts[2]}/${parts[1]}/${parts[0]}`;
-}
-
 function formatVND(value) {
-  if (value === null || value === undefined) return "0đ";
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
@@ -316,25 +351,64 @@ function formatVND(value) {
 }
 
 function showLocalToast(message, type = "success") {
-  let container = null;
-  if (window.parent && window.parent.document) {
-    container = window.parent.document.getElementById("pet-toast-container");
+  if (!document.getElementById("pet-toast-animation-style")) {
+    const style = document.createElement("style");
+    style.id = "pet-toast-animation-style";
+    style.innerHTML = `
+      @keyframes slideInRight {
+        from { transform: translateX(110%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(110%); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
   }
+
+  let container = document.getElementById("pet-toast-container");
   if (!container) {
-    container = document.getElementById("pet-toast-container");
-    if (!container) {
-      container = document.createElement("div");
-      container.id = "pet-toast-container";
-      document.body.appendChild(container);
-    }
+    container = document.createElement("div");
+    container.id = "pet-toast-container";
+    document.body.appendChild(container);
   }
+
+  container.style.cssText =
+    "position: fixed; top: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;";
+
   const toast = document.createElement("div");
-  toast.className = `pet-toast ${type}`;
-  const icon = type === "success" ? "🎉" : "❌";
-  toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+  const bgColor = type === "success" ? "#10b981" : "#ef4444";
+  const icon = type === "success" ? "✓" : "✕";
+
+  toast.style.cssText = `
+    pointer-events: auto;
+    min-width: 250px;
+    padding: 12px 18px;
+    background: #ffffff;
+    color: #2c3e50;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    border-left: 5px solid ${bgColor};
+    animation: slideInRight 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  `;
+
+  toast.innerHTML = `
+    <span style="width: 22px; height: 22px; background: ${bgColor}; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; flex-shrink: 0;">${icon}</span>
+    <span style="flex: 1; line-height: 1.4;">${message}</span>
+  `;
+
   container.appendChild(toast);
 
   setTimeout(() => {
-    toast.remove();
+    toast.style.animation = "slideOutRight 0.3s forwards ease-in";
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
   }, 3000);
 }

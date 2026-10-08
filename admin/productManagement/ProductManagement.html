@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý sản phẩm & kho</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="ProductManagement.css" />
+  </head>
+  <body>
+    <div class="product-container">
+      <!-- HEADER CỐ ĐỊNH PHÍA TRÊN -->
+      <div class="fixed-header-section">
+        <div class="header">
+          <div class="header-title">
+            <h2>
+              <i class="fa-solid fa-boxes-stacked"></i> Quản lý sản phẩm & kho
+            </h2>
+            <p>Quản lý sản phẩm, số lượng tồn kho và nhập xuất</p>
+          </div>
+          <button class="btn-add" id="btnOpenAddProductModal">
+            <i class="fa-solid fa-plus"></i> Thêm sản phẩm
+          </button>
+        </div>
+
+        <!-- THẺ THỐNG KÊ -->
+        <div class="stats-grid">
+          <div class="stat-card total">
+            <div class="stat-icon"><i class="fa-solid fa-box"></i></div>
+            <div class="stat-info">
+              <div class="label">Tổng sản phẩm</div>
+              <div class="value-box">
+                <span class="value" id="total-products">0</span>
+                <span class="unit">Sản phẩm</span>
+              </div>
+            </div>
+          </div>
+          <div class="stat-card active">
+            <div class="stat-icon"><i class="fa-solid fa-cubes"></i></div>
+            <div class="stat-info">
+              <div class="label">Tổng tồn kho</div>
+              <div class="value-box">
+                <span class="value" id="total-stock">0</span>
+                <span class="unit">Sản phẩm</span>
+              </div>
+            </div>
+          </div>
+          <div class="stat-card warning">
+            <div class="stat-icon">
+              <i class="fa-solid fa-arrow-trend-down"></i>
+            </div>
+            <div class="stat-info">
+              <div class="label">Sắp hết hàng</div>
+              <div class="value-box">
+                <span class="value" id="low-stock">0</span>
+                <span class="unit">Sản phẩm</span>
+              </div>
+            </div>
+          </div>
+          <div class="stat-card danger">
+            <div class="stat-icon"><i class="fa-solid fa-trash-can"></i></div>
+            <div class="stat-info">
+              <div class="label">Hết hàng</div>
+              <div class="value-box">
+                <span class="value" id="out-of-stock">0</span>
+                <span class="unit">Sản phẩm</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BỘ LỌC CẢI TIẾN -->
+        <div class="filter-toolbar">
+          <div class="filter-group">
+            <div class="filter-item">
+              <label>Trạng thái</label>
+              <select class="select-filter" id="statusFilter">
+                <option value="all">Tất cả</option>
+                <option value="Còn hàng">Còn hàng</option>
+                <option value="Sắp hết">Sắp hết</option>
+                <option value="Hết hàng">Hết hàng</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn-excel" id="btnExportExcel">
+            <i class="fa-solid fa-file-excel"></i> Xuất Excel
+          </button>
+        </div>
+      </div>
+
+      <!-- BỐ CỤC CHÍNH -->
+      <div class="main-content-grid">
+        <!-- SIDEBAR DANH MỤC -->
+        <div class="category-sidebar">
+          <div class="sidebar-title">Danh mục sản phẩm</div>
+          <ul class="category-list" id="categoryList">
+            <!-- JS Render -->
+          </ul>
+        </div>
+
+        <!-- BẢNG SẢN PHẨM -->
+        <div class="product-table-section">
+          <div class="section-title">Danh sách sản phẩm</div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Sản phẩm</th>
+                  <th>Danh mục</th>
+                  <th>Giá bán</th>
+                  <th>Tồn kho</th>
+                  <th>Trạng thái</th>
+                  <th style="text-align: center">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="productTableBody">
+                <!-- JS Render -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- PHÂN TRANG -->
+          <div class="pagination-container">
+            <div class="pagination" id="pagination"></div>
+          </div>
+        </div>
+
+        <!-- PANEL BÊN PHẢI -->
+        <div class="right-panel">
+          <div class="panel-box import-box">
+            <div class="panel-info">
+              <div class="panel-icon import">
+                <i class="fa-solid fa-truck-ramp-box"></i>
+              </div>
+              <div>
+                <h4>Nhập hàng</h4>
+                <p>Thêm hàng vào kho</p>
+              </div>
+            </div>
+            <button class="btn-action import-btn" id="btnOpenImportModal">
+              <i class="fa-solid fa-upload"></i> Nhập hàng
+            </button>
+          </div>
+
+          <div class="panel-box activity-box">
+            <h4>Hoạt động gần đây</h4>
+            <ul class="activity-list" id="activityList">
+              <li>
+                <div class="act-icon import">
+                  <i class="fa-solid fa-box-archive"></i>
+                </div>
+                <div class="act-details">
+                  <div class="act-title">Hệ thống sẵn sàng</div>
+                  <div class="act-sub">Cập nhật dữ liệu mới nhất</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- THÔNG BÁO MẸO -->
+      <div class="tip-footer">
+        <i class="fa-solid fa-lightbulb"></i>
+        <span
+          ><strong>Mẹo:</strong> Sản phẩm sắp hết hàng sẽ được hiển thị màu
+          vàng, hết hàng hiển thị màu đỏ để bạn dễ dàng quản lý và nhập hàng kịp
+          thời.</span
+        >
+      </div>
+    </div>
+
+    <!-- 1. MODAL THÊM / SỬA SẢN PHẨM (MÃ SP TỰ GEN, TẢI ẢNH LÊN) -->
+    <div class="modal-overlay hidden" id="productModal">
+      <div class="modal-card" style="max-width: 650px">
+        <div class="modal-header">
+          <h3 id="productModalTitle">
+            <i class="fa-solid fa-box-open"></i> Thêm sản phẩm mới
+          </h3>
+          <button class="modal-close" id="btnCloseProductModal">&times;</button>
+        </div>
+        <form id="productForm">
+          <input type="hidden" id="prodEditId" value="" />
+          <input type="hidden" id="existingImageUrl" value="" />
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="prodName"
+                >Tên sản phẩm <span class="required">*</span></label
+              >
+              <input
+                type="text"
+                id="prodName"
+                class="form-control"
+                placeholder="VD: Thức ăn Hạt Royal Canin"
+                required
+              />
+            </div>
+
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px"
+            >
+              <div class="form-group">
+                <label for="prodCategoryId"
+                  >Danh mục <span class="required">*</span></label
+                >
+                <select id="prodCategoryId" class="form-control" required>
+                  <option value="">-- Chọn danh mục --</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="prodUnit"
+                  >Đơn vị tính <span class="required">*</span></label
+                >
+                <input
+                  type="text"
+                  id="prodUnit"
+                  class="form-control"
+                  placeholder="VD: Bao, Hộp, Chai, Gói, KG..."
+                  required
+                />
+              </div>
+            </div>
+
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px"
+            >
+              <div class="form-group">
+                <label for="prodCostPrice"
+                  >Giá nhập (VNĐ) <span class="required">*</span></label
+                >
+                <input
+                  type="number"
+                  id="prodCostPrice"
+                  class="form-control"
+                  placeholder="0"
+                  min="0"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="prodSalePrice"
+                  >Giá bán (VNĐ) <span class="required">*</span></label
+                >
+                <input
+                  type="number"
+                  id="prodSalePrice"
+                  class="form-control"
+                  placeholder="0"
+                  min="0"
+                  required
+                />
+              </div>
+            </div>
+
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px"
+            >
+              <div class="form-group">
+                <label for="prodStock">Tồn kho ban đầu</label>
+                <input
+                  type="number"
+                  id="prodStock"
+                  class="form-control"
+                  placeholder="0"
+                  min="0"
+                  value="0"
+                />
+              </div>
+              <div class="form-group">
+                <label for="prodMinStock">Cảnh báo tồn tối thiểu</label>
+                <input
+                  type="number"
+                  id="prodMinStock"
+                  class="form-control"
+                  placeholder="5"
+                  min="0"
+                  value="5"
+                />
+              </div>
+            </div>
+
+            <!-- CHỌN ẢNH TẢI LÊN TỪ MÁY TÍNH -->
+            <div class="form-group">
+              <label for="prodImageFile">Hình ảnh sản phẩm</label>
+              <input
+                type="file"
+                id="prodImageFile"
+                class="form-control"
+                accept="image/*"
+              />
+              <div
+                id="imagePreviewContainer"
+                style="margin-top: 8px; display: none"
+              >
+                <img
+                  id="imagePreview"
+                  src=""
+                  alt="Xem trước ảnh"
+                  style="
+                    max-height: 80px;
+                    border-radius: 6px;
+                    border: 1px solid #e2e8f0;
+                  "
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="prodDescription">Mô tả sản phẩm</label>
+              <textarea
+                id="prodDescription"
+                class="form-control"
+                rows="3"
+                placeholder="Mô tả chi tiết về sản phẩm..."
+              ></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-modal btn-cancel"
+              id="btnCancelProductModal"
+            >
+              Hủy bỏ
+            </button>
+            <button type="submit" class="btn-modal btn-submit">
+              Lưu sản phẩm
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 2. MODAL NHẬP HÀNG TỒN KHO -->
+    <div class="modal-overlay hidden" id="importInventoryModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-truck-ramp-box"></i> Nhập hàng vào kho</h3>
+          <button class="modal-close" id="btnCloseImportModal">&times;</button>
+        </div>
+        <form id="importInventoryForm">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="importProductId"
+                >Chọn sản phẩm <span class="required">*</span></label
+              >
+              <select id="importProductId" class="form-control" required>
+                <option value="">-- Chọn sản phẩm --</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="importQuantity">
+                Số lượng nhập thêm <span class="required">*</span>
+                <span
+                  id="importUnitDisplay"
+                  style="color: #2563eb; font-weight: 600; margin-left: 5px"
+                ></span>
+              </label>
+              <input
+                type="number"
+                id="importQuantity"
+                class="form-control"
+                min="1"
+                placeholder="Nhập số lượng nhập"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="importUnitPrice"
+                >Giá nhập mới (VNĐ)
+                <small style="color: #64748b"
+                  >(Bỏ trống nếu không đổi)</small
+                ></label
+              >
+              <input
+                type="number"
+                id="importUnitPrice"
+                class="form-control"
+                min="0"
+                placeholder="Nhập giá nhập mới"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="importNote">Ghi chú nhập hàng</label>
+              <input
+                type="text"
+                id="importNote"
+                class="form-control"
+                placeholder="Ví dụ: Nhập kho theo hóa đơn đợt 1"
+              />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-modal btn-cancel"
+              id="btnCancelImportModal"
+            >
+              Hủy bỏ
+            </button>
+            <button type="submit" class="btn-modal btn-submit">
+              Xác nhận nhập hàng
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="ProductManagement.js"></script>
+  </body>
+</html>

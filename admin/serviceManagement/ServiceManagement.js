@@ -1,138 +1,343 @@
 /**
- * ⚡ FILE: ServiceManagement.js
- * Quản lý đồng bộ bảng giá dịch vụ và kết nối hiển thị mã phòng/thẻ phòng.
- * ĐÃ CHỈNH SỬA: Đồng bộ 100% logic nhả phòng, khóa bảo trì với Back-End mới.
+ * 🛠️ FILE: ServiceManagement.js
+ * Quản lý Dịch vụ & Loại dịch vụ - Tích hợp Laravel API v1 chuẩn
+ * (Đã cập nhật: Tất cả dịch vụ đều gán phòng tự động dựa trên Loại phòng)
  */
 
-const SERVER_HOST = "http://localhost:8080";
-const API_SERVICES = `${SERVER_HOST}/api/services`;
-const API_ROOMS = `${SERVER_HOST}/api/rooms`;
+const SERVER_HOST = "http://127.0.0.1:8000";
+const BASE_URL = `${SERVER_HOST}/api/v1`;
 
-let ALL_SERVICES_DATA = [];
-let ALL_ROOMS_DATA = [];
-let CURRENT_ACTIVE_TAB = "HEALTH";
+let globalServiceCategories = [];
+let globalRoomTypes = [];
+let globalRooms = [];
+let globalServices = [];
+
+let selectedCategoryId = "all";
+let selectedStatus = "all";
+let tempUploadedImageUrl = null;
 
 document.addEventListener("DOMContentLoaded", function () {
-  const token = getValidToken();
+  const token = getAuthToken();
+
   if (!token) {
-    showLocalToast("Phiên làm việc hết hạn. Vui lòng đăng nhập lại!", "error");
+    console.warn("⚠️ Chưa tìm thấy Token hợp lệ. Vui lòng đăng nhập!");
+    showLocalToast("Phiên đăng nhập hết hạn hoặc chưa xác thực!", "error");
     return;
   }
 
-  // Tải song song cả hai nguồn dữ liệu sống ban đầu
-  Promise.all([loadRoomsData(token), loadServicesData(token)]).then(() => {
-    switchServiceTab("HEALTH");
-  });
+  // 1. Khởi tạo dữ liệu ban đầu
+  initServiceManagement(token);
 
-  initFormSubmitEvent(token);
+  // 2. Lắng nghe Bộ lọc Trạng thái
+  const statusFilterEl = document.getElementById("statusFilter");
+  if (statusFilterEl) {
+    statusFilterEl.addEventListener("change", function (e) {
+      selectedStatus = e.target.value;
+      renderTable();
+    });
+  }
+
+  // 3. Đăng ký sự kiện Modal
+  setupModalEvents(token);
 });
 
-function getValidToken() {
+/* ==========================================================================
+   🔑 AUTH & TOKEN HELPER
+   ========================================================================== */
+
+function getAuthToken() {
   const urlParams = new URLSearchParams(window.location.search);
   let token = urlParams.get("token");
+
   if (!token) token = localStorage.getItem("petcare_token");
-  if (!token && window.parent && window.parent.localStorage) {
-    token = window.parent.localStorage.getItem("petcare_token");
-  }
-  return token && token !== "null" && token !== "undefined"
-    ? token.trim()
-    : null;
-}
+  if (!token) token = sessionStorage.getItem("petcare_token");
 
-async function loadRoomsData(token) {
   try {
-    const response = await fetch(`${API_ROOMS}/all`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-    if (response.ok) {
-      ALL_ROOMS_DATA = await response.json();
+    if (!token && window.parent && window.parent.localStorage) {
+      token = window.parent.localStorage.getItem("petcare_token");
     }
-  } catch (error) {
-    console.error("❌ Lỗi tải danh sách phòng:", error);
+  } catch (e) {
+    console.warn("Cross-origin iframe storage access blocked:", e);
   }
+
+  if (token === "null" || token === "undefined" || !token) {
+    return null;
+  }
+  return token.trim();
 }
 
-async function loadServicesData(token) {
+async function initServiceManagement(token) {
+  await Promise.all([
+    fetchServiceCategories(token),
+    fetchRoomTypes(token),
+    fetchRooms(token),
+    fetchServices(token),
+  ]);
+
+  renderHeaderStats();
+  renderSidebarCategory();
+  renderTable();
+}
+
+/* ==========================================================================
+   📡 FETCH DATA FROM API
+   ========================================================================== */
+
+async function fetchServiceCategories(token) {
   try {
-    const response = await fetch(`${API_SERVICES}/all`, {
+    const res = await fetch(`${BASE_URL}/service-categories`, {
       method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
     });
-    if (response.ok) {
-      ALL_SERVICES_DATA = await response.json();
+    const result = await res.json();
+    if (res.ok && (result.status || result.success)) {
+      globalServiceCategories = result.data || [];
     }
-  } catch (error) {
-    console.error("❌ Lỗi tải bảng giá dịch vụ:", error);
+  } catch (err) {
+    console.error("Lỗi lấy Service Categories:", err);
   }
 }
 
-window.switchServiceTab = function (categoryEnum) {
-  CURRENT_ACTIVE_TAB = categoryEnum;
-
-  document
-    .querySelectorAll(".tab-btn")
-    .forEach((btn) => btn.classList.remove("active"));
-  const clickedBtn = document.querySelector(
-    `button[onclick="switchServiceTab('${categoryEnum}')"]`,
-  );
-  if (clickedBtn) clickedBtn.classList.add("active");
-
-  document
-    .querySelectorAll(".service-panel")
-    .forEach((panel) => panel.classList.remove("active"));
-  const activePanel = document.getElementById(`panel-${categoryEnum}`);
-  if (activePanel) activePanel.classList.add("active");
-
-  const filteredServices = ALL_SERVICES_DATA.filter(
-    (s) => s.category === categoryEnum,
-  );
-
-  if (categoryEnum === "HOTEL") {
-    renderTableBody("tableHotelBody", filteredServices);
-    renderHotelGrid(); // Đổ card danh sách phòng xuống dưới
-  } else if (categoryEnum === "SPA") {
-    renderTableBody("tableSpaBody", filteredServices);
-  } else {
-    renderTableBody("tableHealthBody", filteredServices);
+async function fetchRoomTypes(token) {
+  try {
+    const res = await fetch(`${BASE_URL}/room-types`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+    });
+    const result = await res.json();
+    if (res.ok && (result.status || result.success)) {
+      globalRoomTypes = result.data || [];
+    }
+  } catch (err) {
+    console.error("Lỗi lấy Room Types:", err);
   }
-};
+}
 
-/**
- * 📋 ĐỔ DỮ LIỆU BẢNG - CHỈ HIỂN THỊ MÃ PHÒNG GỌN GÀNG THEO Ý NÍ
- */
-function renderTableBody(tableId, services) {
-  const tbody = document.getElementById(tableId);
+async function fetchRooms(token) {
+  try {
+    const res = await fetch(`${BASE_URL}/rooms`, {
+      // Hoặc ${BASE_URL}/admin/rooms
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+    });
+    const result = await res.json();
+    if (res.ok && (result.status || result.success)) {
+      globalRooms = result.data || [];
+    }
+  } catch (err) {
+    console.error("Lỗi lấy Rooms:", err);
+  }
+}
+
+async function fetchServices(token) {
+  try {
+    const res = await fetch(`${BASE_URL}/services`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+    });
+    const result = await res.json();
+    if (res.ok && (result.status || result.success)) {
+      globalServices = result.data || [];
+    }
+  } catch (err) {
+    console.error("Lỗi lấy Services:", err);
+    showLocalToast("Không thể kết nối đến máy chủ!", "error");
+  }
+}
+
+/* ==========================================================================
+   ⚙️ BỘ GEN MÃ TỰ TĂNG
+   ========================================================================== */
+
+function generateNextCode(prefix, currentList, codeKey = "serviceCode") {
+  let maxNum = 0;
+
+  currentList.forEach((item) => {
+    const codeVal =
+      item[codeKey] || item.categoryCode || item.code || item.serviceCode || "";
+    if (codeVal) {
+      const match = String(codeVal).match(/\d+/g);
+      if (match) {
+        const num = parseInt(match[match.length - 1], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    } else {
+      const itemId = item.serviceId || item.categoryId || item.id;
+      if (itemId && !isNaN(itemId) && parseInt(itemId, 10) > maxNum) {
+        maxNum = parseInt(itemId, 10);
+      }
+    }
+  });
+
+  const nextNum = maxNum + 1;
+  const formattedNum = String(nextNum).padStart(3, "0");
+  return `${prefix}-A${formattedNum}`;
+}
+
+/* ==========================================================================
+   📊 RENDER STATS, SIDEBAR & TABLE
+   ========================================================================== */
+
+function renderHeaderStats() {
+  const statsContainer = document.getElementById("statsGrid");
+  if (!statsContainer) return;
+
+  let html = `
+    <div class="stat-card card-0">
+      <div class="stat-icon"><i class="fa-solid fa-list-check"></i></div>
+      <div class="stat-info">
+        <div class="label">Tổng dịch vụ</div>
+        <div class="value-box">
+          <span class="value">${globalServices.length}</span>
+          <span class="unit">Gói dịch vụ</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  globalServiceCategories.forEach((cat, idx) => {
+    const catId = cat.categoryId || cat.id;
+    const count = globalServices.filter(
+      (s) => Number(s.categoryId) === Number(catId),
+    ).length;
+    const iconClass = cat.icon || "fa-concierge-bell";
+    const cardClass = `card-${(idx % 4) + 1}`;
+
+    html += `
+      <div class="stat-card ${cardClass}">
+        <div class="stat-icon"><i class="fa-solid ${iconClass}"></i></div>
+        <div class="stat-info">
+          <div class="label">${cat.categoryName || cat.name}</div>
+          <div class="value-box">
+            <span class="value">${count}</span>
+            <span class="unit">Gói dịch vụ</span>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  statsContainer.innerHTML = html;
+}
+
+function renderSidebarCategory() {
+  const ul = document.getElementById("categoryList");
+  if (!ul) return;
+
+  let html = `
+    <li class="category-item ${selectedCategoryId === "all" ? "active" : ""}" data-category-id="all">
+      <span><i class="fa-solid fa-border-all"></i> Tất cả dịch vụ</span>
+      <span class="count">${globalServices.length}</span>
+    </li>
+  `;
+
+  globalServiceCategories.forEach((cat) => {
+    const catId = cat.categoryId || cat.id;
+    const catName = cat.categoryName || cat.name;
+    const count = globalServices.filter(
+      (s) => Number(s.categoryId) === Number(catId),
+    ).length;
+    const isActive = String(selectedCategoryId) === String(catId);
+    const iconClass = cat.icon || "fa-folder";
+
+    html += `
+      <li class="category-item ${isActive ? "active" : ""}" data-category-id="${catId}">
+        <span><i class="fa-solid ${iconClass}"></i> ${catName}</span>
+        <span class="count">${count}</span>
+      </li>
+    `;
+  });
+
+  ul.innerHTML = html;
+
+  ul.querySelectorAll(".category-item").forEach((item) => {
+    item.addEventListener("click", function () {
+      ul.querySelectorAll(".category-item").forEach((i) =>
+        i.classList.remove("active"),
+      );
+      this.classList.add("active");
+      selectedCategoryId = this.dataset.categoryId;
+      renderTable();
+    });
+  });
+}
+
+function renderTable() {
+  const tbody = document.getElementById("serviceTableBody");
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  if (services.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="color: #999;">📭 Chưa cấu hình gói dịch vụ nào.</td></tr>`;
+  const filtered = globalServices.filter((s) => {
+    const matchCat =
+      selectedCategoryId === "all" ||
+      String(s.categoryId) === String(selectedCategoryId);
+
+    let matchStatus = true;
+    if (selectedStatus !== "all") {
+      const statusUpper = (s.status || "").toUpperCase();
+      if (selectedStatus === "Đang hoạt động") {
+        matchStatus =
+          statusUpper === "ACTIVE" || statusUpper === "ĐANG HOẠT ĐỘNG";
+      } else if (selectedStatus === "Bảo trì") {
+        matchStatus =
+          statusUpper === "MAINTENANCE" || statusUpper === "BẢO TRÌ";
+      } else if (selectedStatus === "Tạm ngưng") {
+        matchStatus = statusUpper === "INACTIVE" || statusUpper === "TẠM NGƯNG";
+      }
+    }
+    return matchCat && matchStatus;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 24px; color: #94a3b8;">Không tìm thấy dịch vụ phù hợp</td></tr>`;
     return;
   }
 
-  services.forEach((srv) => {
-    let roomCodeDisplay = srv.roomCode || "Chưa gán";
-
+  filtered.forEach((s) => {
     const tr = document.createElement("tr");
-    tr.style.opacity = srv.status ? "1" : "0.6";
+
+    const cat = globalServiceCategories.find(
+      (c) => String(c.categoryId || c.id) === String(s.categoryId),
+    );
+    const categoryName = cat
+      ? cat.categoryName || cat.name
+      : s.categoryName || "Chưa phân loại";
+
+    // Tất cả dịch vụ hiển thị Loại phòng áp dụng
+    let roomLocationDisplay = "Gán tự động";
+    if (s.requiredRoomTypeName) {
+      roomLocationDisplay = `<span style="color:#475569;"><i class="fa-solid fa-door-open"></i> Loại: ${s.requiredRoomTypeName}</span>`;
+    }
+
+    const sId = s.serviceId || s.id;
+    const sCode = s.serviceCode || s.code || `SV-A${sId}`;
+    const sName = s.serviceName || s.name;
+    const sPrice = s.price ? Number(s.price).toLocaleString() : "0";
+    const sDuration = s.duration ? `${s.duration} phút` : "Theo yêu cầu";
+    const sImg = s.imageUrl || "https://via.placeholder.com/80?text=PetCare";
+
     tr.innerHTML = `
-      <td><span class="badge-code">${srv.serviceCode}</span></td>
-      <td><strong>${srv.serviceName}</strong></td>
-      <td><span class="room-badge-indicator">🚪 ${roomCodeDisplay}</span></td>
-      <td><span style="font-size:13px; color:#666;">${srv.description || "Chưa có ghi chú..."}</span></td>
-      <td><span class="price-text">${srv.price.toLocaleString("vi-VN")} đ</span></td>
-      <td class="text-center">
-        <div class="cstm-action-group">
-          <button class="btn-icon-action" title="Xem Chi Tiết Cụ Thể" onclick="openEditService('${srv.serviceId}')">👁️</button>
-          <button class="btn-icon-action delete" title="Bật/Tắt Kinh Doanh" onclick="toggleService('${srv.serviceId}')">
-            ${srv.status ? "🛑" : "🟢"}
+      <td>
+        <div class="product-item-cell">
+          <img src="${sImg}" class="product-img" alt="${sName}">
+          <div>
+            <div class="product-info-name">${sName}</div>
+            <div class="product-code">Mã DV: ${sCode}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="category-tag"><i class="fa-solid fa-tag"></i> ${categoryName}</span></td>
+      <td><strong style="color: #ea580c;">${sPrice}đ</strong></td>
+      <td><span class="duration-text"><i class="fa-regular fa-clock"></i> ${sDuration}</span></td>
+      <td><span style="font-size: 11px;">${roomLocationDisplay}</span></td>
+      <td>${getStatusBadge(s.status)}</td>
+      <td>
+        <div class="action-btns">
+          <button class="btn-icon btn-edit" title="Chỉnh sửa dịch vụ" onclick="openEditServiceModal(${sId})">
+            <i class="fa-regular fa-pen-to-square"></i>
+          </button>
+          <button class="btn-icon btn-delete" title="Xóa dịch vụ" onclick="deleteService(${sId})">
+            <i class="fa-regular fa-trash-can"></i>
           </button>
         </div>
       </td>
@@ -141,241 +346,597 @@ function renderTableBody(tableId, services) {
   });
 }
 
-/**
- * 🏨 SƠ ĐỒ THẺ CARD LUXURY CHO PHÒNG LƯU TRÚ (TAB HOTEL)
- * 🌟 ĐÃ ĐỒNG BỘ: Chuẩn hóa nhãn text tiếng Việt đồng bộ hệ thống.
- */
-function renderHotelGrid() {
-  const grid = document.getElementById("hotelGridBody");
-  if (!grid) return;
-  grid.innerHTML = "";
-
-  const hotelRooms = ALL_ROOMS_DATA.filter((r) => r.roomCategory === "HOTEL");
-
-  if (hotelRooms.length === 0) {
-    grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:30px; color:#999;">📭 Không tìm thấy phòng lưu trú nào!</div>`;
-    return;
+function getStatusBadge(status) {
+  const st = (status || "").toUpperCase();
+  if (st === "ACTIVE" || st === "ĐANG HOẠT ĐỘNG") {
+    return `<span class="badge-status normal">Đang hoạt động</span>`;
   }
+  if (st === "MAINTENANCE" || st === "BẢO TRÌ") {
+    return `<span class="badge-status low">Bảo trì</span>`;
+  }
+  return `<span class="badge-status out">Tạm ngưng</span>`;
+}
 
-  hotelRooms.forEach((room) => {
-    let cardClass = "cstm-empty";
-    let statusText = "🟢 Còn Trống";
+/* ==========================================================================
+   📝 XỬ LÝ MODAL & FORM EVENTS
+   ========================================================================== */
 
-    if (room.status === "BUSY") {
-      cardClass = "cstm-occupied";
-      statusText = "🔴 Đang Có Khách Ở";
-    } else if (room.status === "BOOKED") {
-      cardClass = "cstm-booked";
-      statusText = "🟠 Đã Được Gán Dịch Vụ";
-    } else if (room.status === "MAINTENANCE") {
-      cardClass = "cstm-maintain";
-      statusText = "🛠️ Đang Bảo Trì";
-    }
+function setupModalEvents(token) {
+  document
+    .getElementById("btnOpenAddCategoryModal")
+    ?.addEventListener("click", () => {
+      openAddCategoryModal(token);
+    });
 
-    const card = document.createElement("div");
-    card.className = `hotel-room-card ${cardClass}`;
-    card.innerHTML = `
-      <div class="room-icon-wrapper">🏨</div>
-      <div class="room-name">${room.roomName}</div>
-      <div style="margin-bottom: 10px;"><span class="pill-room-status">${statusText}</span></div>
-      <div style="font-size:12px; color:#777; font-weight:700;">Mã phòng: ${room.roomCode}</div>
-    `;
-    grid.appendChild(card);
+  document
+    .getElementById("btnOpenAddServiceModal")
+    ?.addEventListener("click", () => {
+      openAddServiceModal(token);
+    });
+
+  document.getElementById("btnExportExcel")?.addEventListener("click", () => {
+    openReportModal();
   });
 }
 
-window.openPriceModal = function (categoryEnum) {
-  const modal = document.getElementById("priceModal");
-  const form = document.getElementById("formPriceService");
-  if (!modal || !form) return;
+/* --------------------------------------------------------------------------
+   MODAL 1: THÊM LOẠI DỊCH VỤ
+   -------------------------------------------------------------------------- */
+function openAddCategoryModal(token) {
+  const nextCode = generateNextCode(
+    "CAT",
+    globalServiceCategories,
+    "categoryCode",
+  );
+  const modalHTML = `
+    <div class="modal-backdrop" id="modalAddCategory">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-folder-plus"></i> Thêm loại dịch vụ</h3>
+          <button class="modal-close-btn" onclick="closeModal('modalAddCategory')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group-modal">
+            <label>Mã loại dịch vụ</label>
+            <input type="text" class="input-modal" value="${nextCode}" readonly id="catCode" />
+          </div>
+          <div class="form-group-modal">
+            <label>Tên loại dịch vụ <span class="req">*</span></label>
+            <input type="text" class="input-modal" id="catName" placeholder="Ví dụ: PET HOTEL, PET SPA & GROOMING..." />
+          </div>
+          <div class="form-group-modal">
+            <label>Mô tả loại dịch vụ</label>
+            <textarea class="textarea-modal" id="catDesc" rows="3" placeholder="Nhập mô tả chi tiết..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-m-cancel" onclick="closeModal('modalAddCategory')">Hủy</button>
+          <button class="btn-m-save" id="btnSaveCategory">Lưu lại</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById("modalContainer").innerHTML = modalHTML;
 
-  form.reset();
-  document.getElementById("priceTargetId").value = "";
-  document.getElementById("priceServiceType").value = categoryEnum;
-  document.getElementById("modalPriceTitle").innerText =
-    `Thêm Mới Gói Phục Vụ - ${categoryEnum}`;
-  document.getElementById("inputServiceStatus").value = "true";
+  document
+    .getElementById("btnSaveCategory")
+    ?.addEventListener("click", async () => {
+      const nameInput = document.getElementById("catName");
+      const descInput = document.getElementById("catDesc");
 
-  buildRoomDropdown(categoryEnum, "");
-  modal.style.display = "flex";
-};
+      if (!nameInput || !nameInput.value.trim()) {
+        showLocalToast("Vui lòng nhập tên loại dịch vụ!", "error");
+        return;
+      }
 
-window.openEditService = function (serviceId) {
-  const srv = ALL_SERVICES_DATA.find((s) => s.serviceId == serviceId);
-  if (!srv) return;
+      try {
+        const res = await fetch(`${BASE_URL}/admin/service-categories/create`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            categoryName: nameInput.value.trim(),
+            description: descInput ? descInput.value.trim() : "",
+          }),
+        });
 
-  const modal = document.getElementById("priceModal");
-  if (!modal) return;
+        const result = await res.json();
+        if (res.ok && (result.status || result.success)) {
+          showLocalToast("Tạo loại dịch vụ thành công!", "success");
+          closeModal("modalAddCategory");
+          initServiceManagement(token);
+        } else {
+          showLocalToast(
+            result.message || "Tạo loại dịch vụ thất bại!",
+            "error",
+          );
+        }
+      } catch (e) {
+        showLocalToast("Lỗi kết nối máy chủ!", "error");
+      }
+    });
+}
 
-  document.getElementById("modalPriceTitle").innerText =
-    "Cấu Hình Chi Tiết & Phòng Phục Vụ";
-  document.getElementById("priceTargetId").value = srv.serviceId;
-  document.getElementById("priceServiceType").value = srv.category;
-  document.getElementById("inputServiceName").value = srv.serviceName;
-  document.getElementById("inputServicePrice").value = srv.price;
-  document.getElementById("inputServiceDuration").value =
-    srv.durationMinutes || 30;
-  document.getElementById("inputServiceDesc").value = srv.description || "";
-  document.getElementById("inputServiceStatus").value = srv.status.toString();
+/* --------------------------------------------------------------------------
+   MODAL 2: THÊM DỊCH VỤ MỚI & SỬA DỊCH VỤ
+   -------------------------------------------------------------------------- */
+function openAddServiceModal(token) {
+  renderServiceFormModal(token, null);
+}
 
-  buildRoomDropdown(srv.category, srv.roomCode);
-  modal.style.display = "flex";
-};
+function openEditServiceModal(serviceId) {
+  const token = getAuthToken();
+  const service = globalServices.find(
+    (s) => Number(s.serviceId) === Number(serviceId),
+  );
+  if (!service) {
+    showLocalToast("Không tìm thấy thông tin dịch vụ!", "error");
+    return;
+  }
+  renderServiceFormModal(token, service);
+}
 
-/**
- * 🛠️ ĐÃ CẬP NHẬT: Ngăn chặn gán phòng bảo trì triệt để từ giao diện Front-End
- */
-function buildRoomDropdown(categoryEnum, currentRoomCode) {
-  const selectRoom = document.getElementById("inputServiceRoomId");
-  if (!selectRoom) return;
+function renderServiceFormModal(token, serviceData = null) {
+  tempUploadedImageUrl = serviceData ? serviceData.imageUrl : null;
+  const isEdit = !!serviceData;
+  const nextCode = isEdit
+    ? serviceData.serviceCode
+    : generateNextCode("SV", globalServices, "serviceCode");
 
-  const matchedRooms = ALL_ROOMS_DATA.filter(
-    (r) => r.roomCategory === categoryEnum,
+  let categoryOptionsHTML = globalServiceCategories
+    .map((cat) => {
+      const catId = cat.categoryId || cat.id;
+      const isSelected =
+        isEdit && Number(serviceData.categoryId) === Number(catId)
+          ? "selected"
+          : "";
+      return `<option value="${catId}" ${isSelected}>${cat.categoryName || cat.name}</option>`;
+    })
+    .join("");
+
+  const modalHTML = `
+    <div class="modal-backdrop" id="modalServiceForm">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-concierge-bell"></i> ${isEdit ? "Chỉnh sửa gói dịch vụ" : "Thêm dịch vụ mới"}</h3>
+          <button class="modal-close-btn" onclick="closeModal('modalServiceForm')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="srvEditId" value="${isEdit ? serviceData.serviceId : ""}" />
+
+          <!-- Ảnh đại diện dịch vụ -->
+          <div class="form-group-modal">
+            <label>Hình ảnh đại diện dịch vụ</label>
+            <div class="service-img-uploader">
+              <img src="${tempUploadedImageUrl || "https://via.placeholder.com/80?text=PetCare"}" id="srvImgPreview" class="service-preview-img" alt="Preview">
+              <button type="button" class="btn-upload-trigger" id="btnTriggerUpload">
+                📷 Chọn hình ảnh
+              </button>
+              <input type="file" id="srvInputFile" accept="image/*" style="display:none;" />
+            </div>
+          </div>
+
+          <div class="grid-2col-modal">
+            <div class="form-group-modal">
+              <label>Mã dịch vụ</label>
+              <input type="text" class="input-modal" value="${nextCode}" id="srvCode" readonly />
+            </div>
+            <div class="form-group-modal">
+              <label>Loại dịch vụ <span class="req">*</span></label>
+              <select class="select-modal" id="srvCategorySelect">
+                ${categoryOptionsHTML}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group-modal">
+            <label>Tên gói dịch vụ <span class="req">*</span></label>
+            <input type="text" class="input-modal" id="srvName" value="${isEdit ? serviceData.serviceName : ""}" placeholder="Nhập tên gói dịch vụ..." />
+          </div>
+
+          <div class="grid-2col-modal">
+            <div class="form-group-modal">
+              <label>Giá dịch vụ (VNĐ) <span class="req">*</span></label>
+              <input type="number" class="input-modal" id="srvPrice" value="${isEdit ? serviceData.price : ""}" placeholder="Ví dụ: 250000" />
+            </div>
+            <div class="form-group-modal">
+              <label>Thời gian thực hiện (Phút) <span class="req">*</span></label>
+              <input type="number" class="input-modal" id="srvDuration" value="${isEdit ? serviceData.duration : ""}" placeholder="Ví dụ: 60" />
+            </div>
+          </div>
+
+          <div class="form-group-modal" id="roomTypeContainer"></div>
+
+          <div class="form-group-modal">
+            <label>Mô tả dịch vụ</label>
+            <textarea class="textarea-modal" id="srvDesc" rows="2" placeholder="Mô tả dịch vụ...">${isEdit ? serviceData.description || "" : ""}</textarea>
+          </div>
+
+          <div class="form-group-modal">
+            <label>Trạng thái ban đầu</label>
+            <select class="select-modal" id="srvStatus">
+              <option value="ACTIVE" ${isEdit && serviceData.status === "ACTIVE" ? "selected" : ""}>Đang hoạt động</option>
+              <option value="MAINTENANCE" ${isEdit && serviceData.status === "MAINTENANCE" ? "selected" : ""}>Bảo trì</option>
+              <option value="INACTIVE" ${isEdit && serviceData.status === "INACTIVE" ? "selected" : ""}>Tạm ngưng</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-m-cancel" onclick="closeModal('modalServiceForm')">Hủy</button>
+          <button class="btn-m-save" id="btnSaveService">Lưu gói dịch vụ</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("modalContainer").innerHTML = modalHTML;
+
+  // Lắng nghe nút Upload
+  document.getElementById("btnTriggerUpload")?.addEventListener("click", () => {
+    document.getElementById("srvInputFile")?.click();
+  });
+
+  document.getElementById("srvInputFile")?.addEventListener("change", (e) => {
+    handleImageUpload(e, token);
+  });
+
+  const catSelect = document.getElementById("srvCategorySelect");
+  if (catSelect) {
+    catSelect.addEventListener("change", (e) => {
+      renderRoomTypeSelectBox(e.target.value, null);
+    });
+
+    const initialCatId = isEdit
+      ? serviceData.categoryId
+      : globalServiceCategories[0]?.categoryId ||
+        globalServiceCategories[0]?.id;
+    const initialRoomTypeId = isEdit ? serviceData.requiredRoomTypeId : null;
+
+    renderRoomTypeSelectBox(initialCatId, initialRoomTypeId);
+  }
+
+  document.getElementById("btnSaveService")?.addEventListener("click", () => {
+    saveService(token, isEdit);
+  });
+}
+
+function renderRoomTypeSelectBox(selectedCatId, selectedRoomTypeId = null) {
+  const roomTypeBox = document.getElementById("roomTypeContainer");
+  if (!roomTypeBox) return;
+
+  const filteredRoomTypes = globalRoomTypes.filter(
+    (rt) => String(rt.categoryId) === String(selectedCatId),
   );
 
-  if (matchedRooms.length === 0) {
-    selectRoom.innerHTML = `<option value="">-- Dùng chung khu vực ${categoryEnum} mặc định --</option>`;
+  let typeOptions = `<option value="">-- Chọn loại phòng áp dụng --</option>`;
+  filteredRoomTypes.forEach((t) => {
+    const isSelected =
+      selectedRoomTypeId && String(t.roomTypeId) === String(selectedRoomTypeId)
+        ? "selected"
+        : "";
+    typeOptions += `<option value="${t.roomTypeId}" ${isSelected}>${t.typeName}</option>`;
+  });
+
+  roomTypeBox.innerHTML = `
+    <label>Loại phòng áp dụng <span class="req">*</span></label>
+    <select class="select-modal" id="srvRoomType">
+      ${typeOptions}
+    </select>
+  `;
+}
+
+async function handleImageUpload(event, token) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    showLocalToast("Vui lòng chọn file hình ảnh hợp lệ!", "error");
     return;
   }
 
-  let optionsHtml = `<option value="">-- Chọn phòng vận hành cụ thể --</option>`;
+  const formData = new FormData();
+  formData.append("image_file", file);
 
-  matchedRooms.forEach((rm) => {
-    let statusVi = "Còn Trống";
-    if (rm.status === "BUSY") statusVi = "Đang Có Khách Ở";
-    else if (rm.status === "BOOKED") statusVi = "Đã Được Gán";
-    else if (rm.status === "MAINTENANCE") statusVi = "Đang Bảo Trì 🛠️";
+  try {
+    showLocalToast("Đang tải ảnh lên...", "success");
+    const res = await fetch(`${BASE_URL}/admin/services/upload-image`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      body: formData,
+    });
 
-    const isCurrentAssignedRoom =
-      currentRoomCode && rm.roomCode === currentRoomCode;
-
-    // 🌟 ĐỒNG BỘ MỚI: Nếu phòng đang sửa chữa (MAINTENANCE) thì BẮT BUỘC KHÓA, không cho phép giữ lại kể cả là phòng cũ
-    const shouldDisable =
-      (rm.status === "MAINTENANCE" ||
-        rm.status === "BOOKED" ||
-        rm.status === "BUSY") &&
-      !isCurrentAssignedRoom;
-
-    const isSelected = isCurrentAssignedRoom ? "selected" : "";
-    const isDisabledAttr = shouldDisable ? "disabled" : "";
-
-    const lockNote = shouldDisable
-      ? ` [Không Thể Chọn - ${statusVi}]`
-      : ` [${statusVi}]`;
-
-    optionsHtml += `<option value="${rm.roomCode}" ${isSelected} ${isDisabledAttr}>🚪 Phòng ${rm.roomName} (${rm.roomCode})${lockNote}</option>`;
-  });
-
-  selectRoom.innerHTML = optionsHtml;
+    const result = await res.json();
+    if (res.ok && (result.status || result.success)) {
+      tempUploadedImageUrl = result.data;
+      const previewImg = document.getElementById("srvImgPreview");
+      if (previewImg) previewImg.src = tempUploadedImageUrl;
+      showLocalToast("Tải ảnh thành công!", "success");
+    } else {
+      showLocalToast(result.message || "Tải ảnh thất bại!", "error");
+    }
+  } catch (e) {
+    showLocalToast("Lỗi kết nối máy chủ khi upload ảnh!", "error");
+  }
 }
 
-window.closePriceModal = function () {
-  document.getElementById("priceModal").style.display = "none";
-};
+async function saveService(token, isEdit = false) {
+  const serviceId = document.getElementById("srvEditId")?.value;
+  const categoryId = document.getElementById("srvCategorySelect")?.value;
+  const name = document.getElementById("srvName")?.value.trim();
+  const price = parseFloat(document.getElementById("srvPrice")?.value);
+  const duration = parseInt(document.getElementById("srvDuration")?.value, 10);
+  const requiredRoomTypeId = document.getElementById("srvRoomType")?.value;
+  const description = document.getElementById("srvDesc")?.value.trim();
+  const status = document.getElementById("srvStatus")?.value;
 
-window.toggleService = async function (serviceId) {
-  const token = getValidToken();
+  if (!name || isNaN(price) || price < 0) {
+    showLocalToast("Vui lòng nhập tên gói và giá dịch vụ hợp lệ!", "error");
+    return;
+  }
+
+  if (isNaN(duration) || duration <= 0) {
+    showLocalToast("Vui lòng nhập thời lượng thực hiện (> 0 phút)!", "error");
+    return;
+  }
+
+  if (!requiredRoomTypeId) {
+    showLocalToast("Vui lòng chọn Loại phòng áp dụng cho dịch vụ!", "error");
+    return;
+  }
+
+  const payload = {
+    categoryId: parseInt(categoryId, 10),
+    serviceName: name,
+    requiredRoomTypeId: parseInt(requiredRoomTypeId, 10),
+    duration: duration,
+    price: price,
+    description: description || "",
+    imageUrl: tempUploadedImageUrl || "",
+    status: status || "ACTIVE",
+  };
+
+  if (isEdit) {
+    payload.serviceId = parseInt(serviceId, 10);
+  }
+
+  const endpoint = isEdit
+    ? `${BASE_URL}/admin/services/update`
+    : `${BASE_URL}/admin/services/create`;
+
   try {
-    const response = await fetch(`${API_SERVICES}/toggle/${serviceId}`, {
-      method: "PATCH",
+    const res = await fetch(endpoint, {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
+        Accept: "application/json",
       },
+      body: JSON.stringify(payload),
     });
-    if (response.ok) {
-      const data = await response.json();
+
+    const result = await res.json();
+    if (res.ok && (result.status || result.success)) {
       showLocalToast(
-        data.message || "Thay đổi trạng thái kinh doanh thành công!",
+        isEdit ? "Cập nhật dịch vụ thành công!" : "Tạo dịch vụ mới thành công!",
         "success",
       );
-
-      // Đồng bộ tải lại toàn bộ thông tin để tránh lệch trạng thái
-      await Promise.all([loadRoomsData(token), loadServicesData(token)]);
-      switchServiceTab(CURRENT_ACTIVE_TAB);
+      closeModal("modalServiceForm");
+      initServiceManagement(token);
     } else {
-      showLocalToast("Không thể thay đổi trạng thái dịch vụ!", "error");
+      showLocalToast(result.message || "Thao tác dịch vụ thất bại!", "error");
     }
-  } catch (error) {
-    console.error("❌ Lỗi bật tắt dịch vụ:", error);
-    showLocalToast("Có lỗi xảy ra khi kết nối máy chủ!", "error");
+  } catch (e) {
+    showLocalToast("Lỗi kết nối máy chủ!", "error");
   }
-};
+}
 
-function initFormSubmitEvent(token) {
-  const form = document.getElementById("formPriceService");
-  if (!form) return;
-
-  form.addEventListener("submit", async function (e) {
-    e.preventDefault();
-
-    const id = document.getElementById("priceTargetId").value;
-    const isUpdate = id !== "";
-    const category = document.getElementById("priceServiceType").value;
-
-    const servicePayload = {
-      serviceName: document.getElementById("inputServiceName").value.trim(),
-      category: category,
-      roomCode: document.getElementById("inputServiceRoomId").value,
-      price: parseFloat(document.getElementById("inputServicePrice").value),
-      durationMinutes: parseInt(
-        document.getElementById("inputServiceDuration").value,
-      ),
-      description: document.getElementById("inputServiceDesc").value.trim(),
-      status: document.getElementById("inputServiceStatus").value === "true",
-    };
-
-    const url = isUpdate
-      ? `${API_SERVICES}/update/${id}`
-      : `${API_SERVICES}/create`;
-    const method = isUpdate ? "PUT" : "POST";
-
-    try {
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(servicePayload),
-      });
-
-      if (response.ok) {
-        showLocalToast(
-          isUpdate
-            ? "🎉 Lưu cấu hình dịch vụ thành công!"
-            : "🎉 Khởi tạo dịch vụ thành công!",
-          "success",
-        );
-        document.getElementById("priceModal").style.display = "none";
-
-        // 🌟 ĐỒNG BỘ QUAN TRỌNG: Gọi song song để cập nhật tức thì màu Grid của cả Phòng và Dịch vụ vừa gán!
-        await Promise.all([loadRoomsData(token), loadServicesData(token)]);
-        switchServiceTab(category);
-      } else {
-        showLocalToast(
-          "Xử lý thất bại, hãy kiểm tra lại dữ liệu đầu vào hoặc trạng thái phòng!",
-          "error",
-        );
-      }
-    } catch (error) {
-      console.error("❌ Lỗi gửi form:", error);
-    }
+/* --------------------------------------------------------------------------
+   MODAL 3: XUẤT BÁO CÁO CSV / EXCEL
+   -------------------------------------------------------------------------- */
+function openReportModal() {
+  const timeStr = new Date().toLocaleTimeString("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
   });
+
+  const total = globalServices.length;
+  const activeCount = globalServices.filter(
+    (s) => (s.status || "").toUpperCase() === "ACTIVE",
+  ).length;
+  const maintCount = total - activeCount;
+
+  let rowsHTML = "";
+  globalServices.forEach((s) => {
+    const cat = globalServiceCategories.find(
+      (c) => String(c.categoryId || c.id) === String(s.categoryId),
+    );
+    const categoryName = cat ? cat.categoryName || cat.name : "Chưa phân loại";
+
+    let roomLocationDisplay = "Gán tự động";
+    if (s.requiredRoomTypeName) {
+      roomLocationDisplay = `Loại: ${s.requiredRoomTypeName}`;
+    }
+
+    const sCode = s.serviceCode || s.code || `SV-A${s.serviceId || s.id}`;
+    const sName = s.serviceName || s.name;
+    const sPrice = s.price ? Number(s.price).toLocaleString() : "0";
+
+    rowsHTML += `
+      <tr style="border-bottom: 1px solid #f1f5f9;">
+        <td style="padding: 8px;"><strong>${sCode}</strong></td>
+        <td style="padding: 8px;">${sName}</td>
+        <td style="padding: 8px;">${categoryName}</td>
+        <td style="padding: 8px; color: #ea580c; font-weight: 600;">${sPrice}đ</td>
+        <td style="padding: 8px;">${roomLocationDisplay}</td>
+        <td style="padding: 8px;">${getStatusBadge(s.status)}</td>
+      </tr>
+    `;
+  });
+
+  const modalHTML = `
+    <div class="modal-backdrop" id="modalServiceReport">
+      <div class="modal-box modal-lg">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-file-excel"></i> Báo Cáo Dịch Vụ & Vị Trí Cung Cấp</h3>
+          <button class="modal-close-btn" onclick="closeModal('modalServiceReport')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div>
+            <div style="font-weight: 700; font-size: 13px; color: #1e293b;">Báo cáo tổng quan dịch vụ PetCare</div>
+            <div style="font-size: 11px; color: #64748b;">Thời gian xuất: ${timeStr}</div>
+          </div>
+
+          <div class="report-summary-cards">
+            <div class="report-card">
+              <div class="r-title">Tổng số dịch vụ</div>
+              <div class="r-val">${total} gói</div>
+            </div>
+            <div class="report-card">
+              <div class="r-title">Đang hoạt động</div>
+              <div class="r-val" style="color: #16a34a;">${activeCount} gói</div>
+            </div>
+            <div class="report-card">
+              <div class="r-title">Bảo trì / Tạm ngưng</div>
+              <div class="r-val" style="color: #ef4444;">${maintCount} gói</div>
+            </div>
+          </div>
+
+          <div style="max-height: 280px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã DV</th>
+                  <th>Tên dịch vụ</th>
+                  <th>Loại Dịch Vụ</th>
+                  <th>Giá tham khảo</th>
+                  <th>Vị trí phòng</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHTML}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-m-cancel" onclick="closeModal('modalServiceReport')">Đóng</button>
+          <button class="btn-m-excel" onclick="exportToCSV()"><i class="fa-solid fa-download"></i> Tải về Excel (.csv)</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("modalContainer").innerHTML = modalHTML;
+}
+
+function exportToCSV() {
+  let csvContent = "\uFEFF";
+  csvContent +=
+    "Mã DV,Tên Dịch Vụ,Loại Dịch Vụ,Giá Tham Khảo,Vị Trí Phòng,Trạng Thái\n";
+
+  globalServices.forEach((s) => {
+    const cat = globalServiceCategories.find(
+      (c) => String(c.categoryId || c.id) === String(s.categoryId),
+    );
+    const categoryName = cat ? cat.categoryName || cat.name : "Chưa phân loại";
+
+    let roomLocationDisplay = "Gán tự động";
+    if (s.requiredRoomTypeName) {
+      roomLocationDisplay = `Loại: ${s.requiredRoomTypeName}`;
+    }
+
+    const sCode = s.serviceCode || s.code || `SV-A${s.serviceId || s.id}`;
+    const sName = `"${(s.serviceName || s.name || "").replace(/"/g, '""')}"`;
+    const location = `"${roomLocationDisplay.replace(/"/g, '""')}"`;
+
+    csvContent += `${sCode},${sName},"${categoryName}",${s.price || 0},${location},"${s.status || "ACTIVE"}"\n`;
+  });
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  const today = new Date().toISOString().slice(0, 10);
+  link.setAttribute("href", url);
+  link.setAttribute("download", `Bao_Cao_Dich_Vu_PetCare_${today}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  showLocalToast("Đã tải xuống báo cáo Excel (.csv) thành công!", "success");
+}
+
+/* ==========================================================================
+   🛠️ COMMON HELPER FUNCTIONS
+   ========================================================================== */
+
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) modal.remove();
+}
+
+async function deleteService(id) {
+  if (!confirm(`Bạn có chắc chắn muốn xóa dịch vụ này không?`)) return;
+  const token = getAuthToken();
+
+  try {
+    const res = await fetch(`${BASE_URL}/admin/services/delete?id=${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+    });
+
+    const result = await res.json();
+    if (res.ok && (result.status || result.success)) {
+      showLocalToast("Đã xóa dịch vụ thành công!", "success");
+      initServiceManagement(token);
+    } else {
+      showLocalToast(result.message || "Xóa dịch vụ thất bại!", "error");
+    }
+  } catch (e) {
+    showLocalToast("Lỗi kết nối khi xóa dịch vụ!", "error");
+  }
 }
 
 function showLocalToast(message, type = "success") {
-  let container = document.getElementById("pet-toast-container");
-  if (!container) {
-    container = document.createElement("div");
-    container.id = "pet-toast-container";
-    document.body.appendChild(container);
+  let container = null;
+  try {
+    if (window.parent && window.parent.document) {
+      container = window.parent.document.getElementById("pet-toast-container");
+    }
+  } catch (e) {
+    console.warn("Parent toast container error:", e);
   }
+
+  if (!container) {
+    container = document.getElementById("pet-toast-container");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "pet-toast-container";
+      container.style.cssText =
+        "position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:8px;";
+      document.body.appendChild(container);
+    }
+  }
+
   const toast = document.createElement("div");
-  toast.style.cssText =
-    "position: fixed; top: 20px; right: 20px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 12px 20px; border-radius: 8px; z-index: 9999; display: flex; align-items: center; gap: 10px; border-left: 5px solid " +
-    (type === "success" ? "#2ec4b6" : "#dc3545");
-  toast.innerHTML = `<span>${type === "success" ? "🎉" : "❌"}</span> <span>${message}</span>`;
+  toast.style.cssText = `padding: 10px 16px; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); background: ${
+    type === "success" ? "#52c41a" : "#ff4d4f"
+  }`;
+
+  const icon = type === "success" ? "🎉" : "❌";
+  toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
   container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 3200);
 }
