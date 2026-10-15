@@ -5,13 +5,13 @@
  */
 
 // =========================================================================
-// 1. CẤU HÌNH & HẰNG SỐ
+// 1. CẤU HÌNH & HẰNG SỐ (Đã cập nhật trỏ về API V1 Laravel)
 // =========================================================================
-const SERVER_HOST = "http://localhost/petcare_management_v2_api";
-const API_BASE_URL = `${SERVER_HOST}/index.php`;
+const SERVER_HOST = "http://localhost:8000";
+const API_BASE_URL = `${SERVER_HOST}/api/v1`;
 
 const DEFAULT_SVG_AVATAR =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmE3YzQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZWNmZWYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iNDIiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTI1LDc1IEMyNSw1OCA3NSw1OCA3NSw3NSIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==";
+  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZjlhOWUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZWNmZWYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0idXJsKCNnKSIvPldjdXN0b21lcjxjaXJjbGUgY3g9IjUwIiBjeT0iNDIiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTI1LDc1IEMyNSw1OCA3NSw1OCA3NSw3NSIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==";
 
 const ICONS = {
   overview: `<svg class="menu-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>`,
@@ -65,8 +65,10 @@ function getImageUrl(path) {
   if (!isValidValue(path)) return DEFAULT_SVG_AVATAR;
   const cleanPath = String(path).trim();
   if (/^(http:\/\/|https:\/\/|data:image)/i.test(cleanPath)) return cleanPath;
-  const relativePath = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
-  return `${SERVER_HOST}${relativePath}`;
+  const relativePath = cleanPath.startsWith("/")
+    ? cleanPath.slice(1)
+    : cleanPath;
+  return `${SERVER_HOST}/${relativePath}`;
 }
 
 function setUserAvatar(path) {
@@ -372,14 +374,20 @@ async function initCustomerNotifications(token) {
   if (DOM.notiCount) DOM.notiCount.style.display = "none";
 }
 
+/**
+ * 📥 Tải Profile Customer từ API V1
+ */
 async function loadUserProfile() {
   const token = localStorage.getItem("petcare_token");
   if (!token) return;
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/account/profile`, {
+    const response = await fetch(`${API_BASE_URL}/customer/profile`, {
       method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
     });
 
     const result = await response.json();
@@ -424,7 +432,7 @@ function setupRealtimeProfileSync() {
 }
 
 // =========================================================================
-// 5. TRÌNH PHÁT NHẠC MULTI-COLOR SPECTRUM (HÀNG NGÀN MÀU - BẮT BEAT CHUẨN KÍCH THƯỚC)
+// 5. TRÌNH PHÁT NHẠC MULTI-COLOR SPECTRUM
 // =========================================================================
 function initCosmicMusicPlayer() {
   const portalBtn = document.getElementById("cosmicPortalWrapper");
@@ -463,7 +471,7 @@ function initCosmicMusicPlayer() {
         window.AudioContext || window.webkitAudioContext;
       audioCtx = new AudioContextClass();
       analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 128; // Tăng FFT size cho phân tích tần số mịn hơn
+      analyser.fftSize = 128;
 
       sourceNode = audioCtx.createMediaElementSource(audioPlayer);
       sourceNode.connect(analyser);
@@ -497,7 +505,6 @@ function initCosmicMusicPlayer() {
     }
   });
 
-  // HÀM BẮT BEAT VỚI HÀNG NGÀN SẮC MÀU HSL TỰ ĐỘNG BIẾN ĐỔI THEO TẦN SỐ
   function startBeatVisualizer() {
     if (!analyser) return;
 
@@ -511,36 +518,28 @@ function initCosmicMusicPlayer() {
 
       analyser.getByteFrequencyData(dataArray);
 
-      // 1. Tính cường độ Bass (Tần số thấp)
       let bassSum = 0;
       for (let i = 0; i < 6; i++) {
         bassSum += dataArray[i];
       }
-      let bassAvg = bassSum / 6; // 0 -> 255
+      let bassAvg = bassSum / 6;
 
-      // 2. Tính cường độ Treble/Mid (Tần số trung & cao)
       let midSum = 0;
       for (let i = 6; i < 20; i++) {
         midSum += dataArray[i];
       }
       let midAvg = midSum / 14;
 
-      // 3. Phóng to thu nhỏ rõ rệt nhưng KHÔNG vượt quá 1.18x (Để không đè tràn Header)
       let scale = 1 + (bassAvg / 255) * 0.18;
-
-      // 4. THUẬT TOÁN HÀNG NGÀN MÀU SẮC (Dựa trên HSL: Hue 0 -> 360)
-      // Tự động xoay màu linh hoạt theo giai điệu + nhịp bass
       let dynamicHue = Math.floor((bassAvg * 1.5 + midAvg * 2) % 360);
 
-      let mainColor = `hsl(${dynamicHue}, 100%, 55%)`; // Màu chính cực nét
-      let glowColor = `hsl(${dynamicHue}, 100%, 50%)`; // Màu viền sáng
-      let coreColor = `hsl(${(dynamicHue + 60) % 360}, 100%, 70%)`; // Lõi màu tương phản rực rỡ
+      let mainColor = `hsl(${dynamicHue}, 100%, 55%)`;
+      let glowColor = `hsl(${dynamicHue}, 100%, 50%)`;
+      let coreColor = `hsl(${(dynamicHue + 60) % 360}, 100%, 70%)`;
 
-      // 5. Áp dụng Style đồng bộ viền sáng & lõi
       portalContainer.style.transform = `scale(${scale.toFixed(3)})`;
       portalContainer.style.borderColor = mainColor;
 
-      // Viền sáng tỏa xung quanh trùng khít màu viền
       let shadowSpread = Math.floor((bassAvg / 255) * 20) + 10;
       portalContainer.style.boxShadow = `0 0 ${shadowSpread}px ${glowColor}, inset 0 0 12px ${glowColor}`;
 

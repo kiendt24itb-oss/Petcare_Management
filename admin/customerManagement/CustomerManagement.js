@@ -1,40 +1,49 @@
 /**
  * 👤 FILE: CustomerManagement.js
- * Quản lý danh sách khách hàng và thú cưng dành cho Admin
- * Đồng bộ API Back-end PHP XAMPP & JWT
+ * Quản lý Khách hàng & Thú cưng - Khớp với AdminCustomerController & CustomerManagement.html
  */
 
-// 🌐 Cấu hình địa chỉ Server PHP XAMPP
-const SERVER_HOST = "http://localhost/petcare_management_v2_api";
-const BASE_URL = `${SERVER_HOST}/index.php/api`;
+const SERVER_HOST = "http://127.0.0.1:8000";
+const BASE_URL = `${SERVER_HOST}/api/v1`;
 
-// Dữ liệu & Cấu hình Phân trang
-let customers = [];
-let filteredData = [];
+let globalCustomers = [];
+let filteredCustomers = [];
 let currentPage = 1;
-const itemsPerPage = 5;
-let targetCustomerId = null; // Lưu customerId khi thao tác Modal
-let targetStatusAction = null; // 'LOCKED' hoặc 'ACTIVE'
+const itemsPerPage = 10;
+
+let targetCustomerId = null;
+let targetStatusAction = null;
+let currentSearchKeyword = "";
 
 document.addEventListener("DOMContentLoaded", function () {
-  // 🔑 Lấy JWT Token từ localStorage
-  const token = getToken();
+  const token = getAuthToken();
 
   if (!token) {
-    showToast("Phiên làm việc hết hạn hoặc chưa đăng nhập Admin!", "error");
+    console.warn("⚠️ Chưa tìm thấy Token hợp lệ. Vui lòng đăng nhập!");
+    showLocalToast("Phiên đăng nhập hết hạn hoặc chưa xác thực!", "error");
     return;
   }
 
-  // Tải dữ liệu khách hàng từ API Admin
-  fetchCustomers(token);
+  // 1. Tải dữ liệu ban đầu
+  initCustomerManagement(token);
 
-  // Lắng nghe sự kiện lọc trạng thái
-  const statusFilter = document.getElementById("statusFilter");
-  if (statusFilter) {
-    statusFilter.addEventListener("change", applyFilters);
+  // 2. Lắng nghe Bộ lọc Trạng thái
+  const statusFilterEl = document.getElementById("statusFilter");
+  if (statusFilterEl) {
+    statusFilterEl.addEventListener("change", function () {
+      applyFilters();
+    });
   }
 
-  // Lắng nghe sự kiện xác nhận trên Modal
+  // 3. Lắng nghe sự kiện tìm kiếm gửi từ Frame ngoài (nếu có)
+  window.addEventListener("message", function (event) {
+    if (event.data && event.data.action === "SEARCH_DATA") {
+      currentSearchKeyword = (event.data.keyword || "").trim().toLowerCase();
+      applyFilters();
+    }
+  });
+
+  // 4. Lắng nghe nút Xác nhận Khóa / Mở khóa trong Modal
   const btnConfirm = document.getElementById("btnConfirmAction");
   if (btnConfirm) {
     btnConfirm.addEventListener("click", function () {
@@ -43,57 +52,147 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-/**
- * 🔑 Helper lấy JWT Token từ các nguồn
- */
-function getToken() {
-  let token = localStorage.getItem("petcare_token");
-  if (!token && window.parent && window.parent.localStorage) {
-    token = window.parent.localStorage.getItem("petcare_token");
+/* ==========================================================================
+   🔑 TOKEN HELPER
+   ========================================================================== */
+
+function getAuthToken() {
+  const urlParams = new URLSearchParams(window.location.search);
+  let token = urlParams.get("token");
+
+  if (!token) token = localStorage.getItem("petcare_token");
+  if (!token) token = sessionStorage.getItem("petcare_token");
+
+  try {
+    if (!token && window.parent && window.parent.localStorage) {
+      token = window.parent.localStorage.getItem("petcare_token");
+    }
+  } catch (e) {
+    console.warn("Cross-origin iframe storage access blocked:", e);
   }
-  return token && token !== "null" && token !== "undefined" ? token : null;
+
+  if (token === "null" || token === "undefined" || !token) {
+    return null;
+  }
+  return token.trim();
 }
 
+/* ==========================================================================
+   🚀 INITIALIZER
+   ========================================================================== */
+
+async function initCustomerManagement(token) {
+  await Promise.all([fetchCustomers(token), fetchSummaryStats(token)]);
+}
+
+/* ==========================================================================
+   📡 FETCH DATA FROM API
+   ========================================================================== */
+
 /**
- * 📥 Gọi API Admin lấy danh sách tất cả khách hàng
+ * 1. Gọi API: GET /v1/admin/customers
  */
 async function fetchCustomers(token) {
   try {
-    const response = await fetch(`${BASE_URL}/admin/customers`, {
+    const res = await fetch(`${BASE_URL}/admin/customers?perPage=100`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        Accept: "application/json",
       },
     });
 
-    const result = await response.json();
+    const result = await res.json();
 
-    if (response.ok && result.status === true) {
-      customers = result.data || [];
-      console.log("📊 Danh sách khách hàng từ API:", customers);
-
-      filteredData = [...customers];
-      updateStats(customers);
-      updateUI();
+    if (res.ok && (result.status || result.success)) {
+      globalCustomers = result.data || [];
+      applyFilters();
     } else {
-      showToast(
+      showLocalToast(
         result.message || "Không thể lấy danh sách khách hàng!",
         "error",
       );
     }
-  } catch (error) {
-    console.error("Lỗi khi tải danh sách khách hàng:", error);
-    showToast("Không thể kết nối đến máy chủ API!", "error");
+  } catch (err) {
+    console.error("Lỗi lấy danh sách khách hàng:", err);
+    showLocalToast("Không thể kết nối đến máy chủ!", "error");
   }
 }
 
 /**
- * 🏷️ Xác định kiểu trạng thái duyệt / khóa
+ * 2. Gọi API: GET /v1/admin/customers/summary
  */
+async function fetchSummaryStats(token) {
+  try {
+    const res = await fetch(`${BASE_URL}/admin/customers/summary`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+    });
+
+    const result = await res.json();
+
+    if (res.ok && (result.status || result.success)) {
+      const stats = result.data || {};
+
+      if (
+        document.getElementById("total-customers") &&
+        stats.totalCustomers !== undefined
+      ) {
+        document.getElementById("total-customers").innerText =
+          stats.totalCustomers;
+      }
+      if (
+        document.getElementById("auto-approved-customers") &&
+        stats.autoApprovedCustomers !== undefined
+      ) {
+        document.getElementById("auto-approved-customers").innerText =
+          stats.autoApprovedCustomers;
+      }
+      if (
+        document.getElementById("admin-approved-customers") &&
+        stats.adminApprovedCustomers !== undefined
+      ) {
+        document.getElementById("admin-approved-customers").innerText =
+          stats.adminApprovedCustomers;
+      }
+      if (
+        document.getElementById("locked-customers") &&
+        stats.lockedCustomers !== undefined
+      ) {
+        document.getElementById("locked-customers").innerText =
+          stats.lockedCustomers;
+      }
+      if (
+        document.getElementById("total-pets") &&
+        stats.totalPets !== undefined
+      ) {
+        document.getElementById("total-pets").innerText = stats.totalPets;
+      }
+    }
+  } catch (err) {
+    console.warn("Lỗi lấy thống kê tổng quan:", err);
+  }
+}
+
+/* ==========================================================================
+   ⚙️ FORMATTERS & STATUS LOGIC
+   ========================================================================== */
+
 function getApprovalType(cust) {
-  const violations = cust.violationCount || 0;
-  const accountStatus = (cust.accountStatus || "ACTIVE").toUpperCase();
+  const violations =
+    cust.violationCount !== undefined
+      ? cust.violationCount
+      : cust.violation_count || 0;
+
+  const accountStatus = (
+    cust.accountStatus ||
+    cust.account_status ||
+    cust.status ||
+    "ACTIVE"
+  ).toUpperCase();
 
   if (accountStatus === "LOCKED" || violations >= 5) {
     return "locked";
@@ -104,9 +203,6 @@ function getApprovalType(cust) {
   return "auto";
 }
 
-/**
- * 🎨 Render HTML Badge Trạng thái
- */
 function getStatusBadgeHTML(approvalType) {
   switch (approvalType) {
     case "auto":
@@ -116,30 +212,39 @@ function getStatusBadgeHTML(approvalType) {
     case "locked":
       return `<span class="status-badge status-locked"><i class="fa-solid fa-lock"></i> Bị khóa</span>`;
     default:
-      return "";
+      return `<span class="status-badge status-auto">Hoạt động</span>`;
   }
 }
 
-/**
- * 🖼️ Chuẩn hóa đường dẫn Avatar
- */
 function getImageUrl(path) {
   const defaultSvg =
     "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZjlhOWUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZWNmZWYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0idXJsKCNnKSIvPldjdXN0b21lcjxjaXJjbGUgY3g9IjUwIiBjeT0iNDIiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTI1LDc1IEMyNSw1OCA3NSw1OCA3NSw3NSIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==";
 
-  if (!path || path.trim() === "") return defaultSvg;
   if (
-    path.startsWith("http://") ||
-    path.startsWith("https://") ||
-    path.startsWith("data:")
-  )
-    return path;
-  return SERVER_HOST + path;
+    !path ||
+    typeof path !== "string" ||
+    path.trim() === "" ||
+    path === "null" ||
+    path === "undefined"
+  ) {
+    return defaultSvg;
+  }
+
+  const cleanPath = path.trim();
+  if (
+    cleanPath.startsWith("http://") ||
+    cleanPath.startsWith("https://") ||
+    cleanPath.startsWith("data:")
+  ) {
+    return cleanPath;
+  }
+
+  const relativePath = cleanPath.startsWith("/")
+    ? cleanPath.slice(1)
+    : cleanPath;
+  return `${SERVER_HOST}/${relativePath}`;
 }
 
-/**
- * 📅 Định dạng ngày từ SQL Timestamp sang DD/MM/YYYY
- */
 function formatDate(dateString) {
   if (!dateString) return "Chưa cập nhật";
   const date = new Date(dateString);
@@ -150,37 +255,45 @@ function formatDate(dateString) {
   return `${day}/${month}/${year}`;
 }
 
-/**
- * 📊 Cập nhật các thẻ thống kê tổng số
- */
+/* ==========================================================================
+   🎨 UI & RENDER TABLE
+   ========================================================================== */
+
 function updateStats(data) {
-  document.getElementById("total-customers").textContent = data.length;
-
-  document.getElementById("auto-approved-customers").textContent = data.filter(
-    (c) => getApprovalType(c) === "auto",
-  ).length;
-
-  document.getElementById("admin-approved-customers").textContent = data.filter(
+  const totalCust = data.length;
+  const autoApproved = data.filter((c) => getApprovalType(c) === "auto").length;
+  const adminApproved = data.filter(
     (c) => getApprovalType(c) === "admin",
   ).length;
+  const lockedCust = data.filter((c) => getApprovalType(c) === "locked").length;
 
-  document.getElementById("locked-customers").textContent = data.filter(
-    (c) => getApprovalType(c) === "locked",
-  ).length;
-
-  // Tính tổng số lượng thú cưng
   const totalPets = data.reduce(
-    (acc, cur) => acc + (parseInt(cur.petsCount) || 0),
+    (acc, cur) =>
+      acc +
+      (parseInt(
+        cur.petsCount || cur.pets_count || (cur.pets ? cur.pets.length : 0),
+        10,
+      ) || 0),
     0,
   );
-  document.getElementById("total-pets").textContent = totalPets;
+
+  if (document.getElementById("total-customers"))
+    document.getElementById("total-customers").innerText = totalCust;
+  if (document.getElementById("auto-approved-customers"))
+    document.getElementById("auto-approved-customers").innerText = autoApproved;
+  if (document.getElementById("admin-approved-customers"))
+    document.getElementById("admin-approved-customers").innerText =
+      adminApproved;
+  if (document.getElementById("locked-customers"))
+    document.getElementById("locked-customers").innerText = lockedCust;
+  if (document.getElementById("total-pets"))
+    document.getElementById("total-pets").innerText = totalPets;
 }
 
-/**
- * 📋 Render dữ liệu vào Bảng HTML
- */
 function renderTable(data) {
   const tableBody = document.getElementById("customerTableBody");
+  if (!tableBody) return;
+
   tableBody.innerHTML = "";
 
   const start = (currentPage - 1) * itemsPerPage;
@@ -193,23 +306,35 @@ function renderTable(data) {
   }
 
   paginatedItems.forEach((cust) => {
+    const custId = cust.customerId || cust.customer_id || cust.id;
     const approvalType = getApprovalType(cust);
     const isLocked = approvalType === "locked";
-    const violations = cust.violationCount || 0;
-    const petsCount = cust.petsCount || 0;
+    const violations =
+      cust.violationCount !== undefined
+        ? cust.violationCount
+        : cust.violation_count || 0;
 
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td><span class="cust-code">${cust.customerCode || "KH-0000"}</span></td>
+    const petsCount =
+      cust.petsCount || cust.pets_count || (cust.pets ? cust.pets.length : 0);
+    const custCode =
+      cust.customerCode ||
+      cust.customer_code ||
+      `KH-${String(custId).padStart(4, "0")}`;
+    const fullName = cust.fullName || cust.full_name || "Khách hàng";
+    const createdAt = cust.createdAt || cust.created_at;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><span class="cust-code">${custCode}</span></td>
       <td>
         <div class="cust-profile">
-          <img src="${getImageUrl(cust.avatar)}" alt="${cust.fullName}" class="avatar">
-          <span>${cust.fullName || "Khách hàng"}</span>
+          <img src="${getImageUrl(cust.avatar)}" alt="${fullName}" class="avatar" onerror="this.src='${getImageUrl(null)}'">
+          <span>${fullName}</span>
         </div>
       </td>
       <td><i class="fa-solid fa-phone" style="color: #22c55e; margin-right: 4px;"></i>${cust.phone || "---"}</td>
       <td><i class="fa-solid fa-envelope" style="color: #3b82f6; margin-right: 4px;"></i>${cust.email || "---"}</td>
-      <td><i class="fa-regular fa-calendar" style="color: #ff7a45; margin-right: 4px;"></i>${formatDate(cust.createdAt)}</td>
+      <td><i class="fa-regular fa-calendar" style="color: #ff7a45; margin-right: 4px;"></i>${formatDate(createdAt)}</td>
       <td style="text-align: center;">
         <span class="violation-badge ${violations >= 3 ? "high" : ""}">
           <i class="fa-solid fa-triangle-exclamation"></i> ${violations}
@@ -217,37 +342,39 @@ function renderTable(data) {
       </td>
       <td style="text-align: center;">${getStatusBadgeHTML(approvalType)}</td>
       <td style="text-align: center;">
-        <span class="pet-count-badge" onclick="handleViewPets(${cust.customerId})" title="Xem danh sách thú cưng">
+        <span class="pet-count-badge" onclick="handleViewPets(${custId})" title="Xem danh sách thú cưng">
           <i class="fa-solid fa-paw"></i> ${petsCount}
         </span>
       </td>
       <td>
         <div class="action-btns">
-          <button class="btn-icon-action btn-view-cust" onclick="handleViewCustomer(${cust.customerId})" title="Xem chi tiết khách hàng">
+          <button class="btn-icon-action btn-view-cust" onclick="handleViewCustomer(${custId})" title="Xem chi tiết khách hàng">
             <i class="fa-regular fa-eye"></i>
           </button>
 
-          <button class="btn-icon-action btn-view-pets" onclick="handleViewPets(${cust.customerId})" title="Xem danh sách thú cưng">
+          <button class="btn-icon-action btn-view-pets" onclick="handleViewPets(${custId})" title="Xem danh sách thú cưng">
             <i class="fa-solid fa-paw"></i>
           </button>
 
+          <!-- BẢNG DANH SÁCH: Hiển thị đúng bản chất trạng thái hiện tại -->
+          <!-- Nếu đang bị khóa (isLocked) -> Nút ĐỎ + Ổ KHOẢNG ĐÓNG (btn-lock & fa-lock) -->
+          <!-- Nếu đang bình thường (!isLocked) -> Nút XANH + Ổ KHOẢNG MỞ (btn-unlock & fa-lock-open) -->
           <button class="btn-icon-action ${isLocked ? "btn-lock" : "btn-unlock"}" 
-                  onclick="handleToggleLock(${cust.customerId})" 
-                  title="${isLocked ? "Mở khóa tài khoản" : "Khóa tài khoản"}">
+                  onclick="handleToggleLock(${custId})" 
+                  title="${isLocked ? "Tài khoản đang bị khóa (Bấm để Mở khóa)" : "Tài khoản đang mở (Bấm để Khóa)"}">
             <i class="fa-solid ${isLocked ? "fa-lock" : "fa-lock-open"}"></i>
           </button>
         </div>
       </td>
     `;
-    tableBody.appendChild(row);
+    tableBody.appendChild(tr);
   });
 }
 
-/**
- * 📄 Render Thanh Phân Trang
- */
 function renderPagination(totalItems) {
   const paginationContainer = document.getElementById("pagination");
+  if (!paginationContainer) return;
+
   paginationContainer.innerHTML = "";
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -309,61 +436,83 @@ function renderPagination(totalItems) {
   paginationContainer.appendChild(nextBtn);
 }
 
-/**
- * 🔄 Cập nhật Giao diện (Bảng & Phân trang)
- */
 function updateUI() {
-  renderTable(filteredData);
-  renderPagination(filteredData.length);
+  renderTable(filteredCustomers);
+  renderPagination(filteredCustomers.length);
 }
 
-/**
- * 🔍 Áp dụng bộ lọc trạng thái
- */
 function applyFilters() {
-  const selectedStatus = document.getElementById("statusFilter").value;
+  const statusFilterEl = document.getElementById("statusFilter");
+  const selectedStatus = statusFilterEl ? statusFilterEl.value : "all";
 
-  filteredData = customers.filter((cust) => {
+  filteredCustomers = globalCustomers.filter((cust) => {
     const type = getApprovalType(cust);
-    return selectedStatus === "all" || type === selectedStatus;
+    const matchStatus = selectedStatus === "all" || type === selectedStatus;
+
+    let matchKeyword = true;
+    if (currentSearchKeyword) {
+      const custCode = (
+        cust.customerCode ||
+        cust.customer_code ||
+        ""
+      ).toLowerCase();
+      const fullName = (cust.fullName || cust.full_name || "").toLowerCase();
+      const phone = (cust.phone || "").toLowerCase();
+      const email = (cust.email || "").toLowerCase();
+
+      matchKeyword =
+        custCode.includes(currentSearchKeyword) ||
+        fullName.includes(currentSearchKeyword) ||
+        phone.includes(currentSearchKeyword) ||
+        email.includes(currentSearchKeyword);
+    }
+
+    return matchStatus && matchKeyword;
   });
 
   currentPage = 1;
-  updateStats(customers);
+  updateStats(globalCustomers);
   updateUI();
 }
 
-/**
- * 🔗 ĐIỀU HƯỚNG: Mở trang Chi tiết thông tin Khách hàng
- */
+/* ==========================================================================
+   🔗 TÁC VỤ MODAL & ĐỔI TRẠNG THÁI (KHÓA / MỞ KHÓA)
+   ========================================================================== */
+
 function handleViewCustomer(customerId) {
-  const targetUrl = `/user/customer/Customer_info.html?id=${customerId}`;
+  const token = getAuthToken();
+  const targetUrl = `/admin/customers/${customerId}?token=${encodeURIComponent(token)}`;
 
-  if (window.parent && typeof window.parent.loadContent === "function") {
-    window.parent.loadContent(targetUrl);
+  if (
+    window.parent &&
+    window.parent.document &&
+    window.parent.document.getElementById("mainFrame")
+  ) {
+    window.parent.document.getElementById("mainFrame").src = targetUrl;
   } else {
     window.location.href = targetUrl;
   }
 }
 
-/**
- * 🔗 ĐIỀU HƯỚNG: Mở trang Danh sách Thú cưng
- */
 function handleViewPets(customerId) {
-  const targetUrl = `/user/pet/Pet_list.html?customerId=${customerId}`;
+  const token = getAuthToken();
+  const targetUrl = `/admin/customers/${customerId}/pets?token=${encodeURIComponent(token)}`;
 
-  if (window.parent && typeof window.parent.loadContent === "function") {
-    window.parent.loadContent(targetUrl);
+  if (
+    window.parent &&
+    window.parent.document &&
+    window.parent.document.getElementById("mainFrame")
+  ) {
+    window.parent.document.getElementById("mainFrame").src = targetUrl;
   } else {
     window.location.href = targetUrl;
   }
 }
 
-/**
- * 🔒 Bật Modal xác nhận Khóa / Mở khóa
- */
 function handleToggleLock(customerId) {
-  const targetCust = customers.find((c) => c.customerId === customerId);
+  const targetCust = globalCustomers.find(
+    (c) => (c.customerId || c.customer_id || c.id) === customerId,
+  );
   if (!targetCust) return;
 
   targetCustomerId = customerId;
@@ -376,96 +525,122 @@ function handleToggleLock(customerId) {
   const modalMessage = document.getElementById("modalMessage");
   const btnConfirm = document.getElementById("btnConfirmAction");
 
+  const fullName = targetCust.fullName || targetCust.full_name || "Khách hàng";
+  const custCode = targetCust.customerCode || targetCust.customer_code || "KH";
+
   if (isLocked) {
-    modalHeader.className = "modal-header unlock-mode";
-    modalTitle.textContent = "Xác nhận mở khóa tài khoản";
-    modalMessage.innerHTML = `Bạn có chắc chắn muốn mở khóa tài khoản cho khách hàng <strong>${targetCust.fullName} (${targetCust.customerCode})</strong> không?`;
-    btnConfirm.textContent = "Mở khóa";
-    btnConfirm.className = "btn-modal btn-confirm btn-unlock-action";
+    // ĐANG BỊ KHÓA -> Mở Modal để thực hiện "MỞ KHÓA" -> Nút bấm xác nhận màu XANH (btn-unlock-action)
+    if (modalHeader) modalHeader.className = "modal-header unlock-mode";
+    if (modalTitle) modalTitle.innerText = "Xác nhận mở khóa tài khoản";
+    if (modalMessage) {
+      modalMessage.innerHTML = `Bạn có chắc chắn muốn mở khóa tài khoản cho khách hàng <strong>${fullName} (${custCode})</strong> không?<br><small style="color: #64748b;">(Số lần vi phạm sẽ hạ về 3 - Cần Admin xét duyệt khi dịch vụ)</small>`;
+    }
+    if (btnConfirm) {
+      btnConfirm.innerText = "Mở khóa";
+      btnConfirm.className = "btn-modal btn-confirm btn-unlock-action";
+    }
   } else {
-    modalHeader.className = "modal-header lock-mode";
-    modalTitle.textContent = "Xác nhận khóa tài khoản";
-    modalMessage.innerHTML = `Bạn có chắc chắn muốn khóa tài khoản của khách hàng <strong>${targetCust.fullName} (${targetCust.customerCode})</strong> không?`;
-    btnConfirm.textContent = "Khóa tài khoản";
-    btnConfirm.className = "btn-modal btn-confirm btn-lock-action";
+    // ĐANG BÌNH THƯỜNG -> Mở Modal để thực hiện "KHÓA TÀI KHOẢN" -> Nút bấm xác nhận màu ĐỎ (btn-lock-action)
+    if (modalHeader) modalHeader.className = "modal-header lock-mode";
+    if (modalTitle) modalTitle.innerText = "Xác nhận khóa tài khoản";
+    if (modalMessage) {
+      modalMessage.innerHTML = `Bạn có chắc chắn muốn khóa tài khoản của khách hàng <strong>${fullName} (${custCode})</strong> không?<br><small style="color: #64748b;">(Số lần vi phạm sẽ tăng lên 5 để đồng bộ khóa tài khoản)</small>`;
+    }
+    if (btnConfirm) {
+      btnConfirm.innerText = "Khóa tài khoản";
+      btnConfirm.className = "btn-modal btn-confirm btn-lock-action";
+    }
   }
 
-  modalOverlay.classList.remove("hidden");
+  if (modalOverlay) modalOverlay.classList.remove("hidden");
 }
 
-/**
- * ❌ Đóng Modal
- */
 function closeModal() {
   const modalOverlay = document.getElementById("confirmModal");
-  if (modalOverlay) {
-    modalOverlay.classList.add("hidden");
-  }
+  if (modalOverlay) modalOverlay.classList.add("hidden");
   targetCustomerId = null;
   targetStatusAction = null;
 }
 
 /**
- * 🚀 Thực thi gọi API thay đổi trạng thái tài khoản sau khi nhấn nút "Xác nhận"
+ * 3. Gọi API: POST /v1/admin/customers/toggle-account-status
  */
 async function confirmToggleLock(token) {
   if (!targetCustomerId || !targetStatusAction) return;
 
   try {
-    const response = await fetch(`${BASE_URL}/admin/customers/change-status`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+    const res = await fetch(
+      `${BASE_URL}/admin/customers/toggle-account-status`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          customerId: targetCustomerId,
+          status: targetStatusAction,
+        }),
       },
-      body: JSON.stringify({
-        customerId: targetCustomerId,
-        status: targetStatusAction,
-      }),
-    });
+    );
 
-    const result = await response.json();
+    const result = await res.json();
 
-    if (response.ok && result.status === true) {
-      showToast(result.message || "Cập nhật trạng thái thành công!", "success");
+    if (res.ok && (result.status || result.success)) {
+      showLocalToast(
+        result.message || "Cập nhật trạng thái thành công!",
+        "success",
+      );
       closeModal();
       await fetchCustomers(token);
     } else {
-      showToast(
-        result.message || "Không thể đổi trạng thái tài khoản!",
+      showLocalToast(
+        result.message || "Không thể thay đổi trạng thái tài khoản!",
         "error",
       );
     }
-  } catch (error) {
-    console.error("Lỗi khi thực hiện đổi trạng thái tài khoản:", error);
-    showToast("Lỗi kết nối tới máy chủ!", "error");
+  } catch (err) {
+    console.error("Lỗi khi thay đổi trạng thái:", err);
+    showLocalToast("Lỗi kết nối máy chủ!", "error");
   }
 }
 
-/**
- * 🍿 Bắn Toast Thông báo trượt
- */
-function showToast(message, type = "success") {
+/* ==========================================================================
+   🔔 TOAST NOTIFICATION HELPER
+   ========================================================================== */
+
+function showLocalToast(message, type = "success") {
   let container = null;
-  if (window.parent && window.parent.document) {
-    container = window.parent.document.getElementById("pet-toast-container");
+  try {
+    if (window.parent && window.parent.document) {
+      container = window.parent.document.getElementById("pet-toast-container");
+    }
+  } catch (e) {
+    console.warn("Parent toast container error:", e);
   }
+
   if (!container) {
     container = document.getElementById("pet-toast-container");
     if (!container) {
       container = document.createElement("div");
       container.id = "pet-toast-container";
+      container.style.cssText =
+        "position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;";
       document.body.appendChild(container);
     }
   }
 
   const toast = document.createElement("div");
-  toast.className = `pet-toast ${type}`;
+  toast.style.cssText = `padding: 10px 16px; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); background: ${
+    type === "success" ? "#52c41a" : "#ff4d4f"
+  }`;
+
   const icon = type === "success" ? "🎉" : "❌";
   toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
   container.appendChild(toast);
 
   setTimeout(() => {
     toast.remove();
-  }, 3000);
+  }, 3200);
 }

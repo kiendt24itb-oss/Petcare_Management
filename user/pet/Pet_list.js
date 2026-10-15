@@ -1,52 +1,47 @@
-const SERVER_HOST = "http://localhost/petcare_management_v2_api";
-const BASE_URL = `${SERVER_HOST}/index.php/api`;
+/**
+ * 🐾 FILE: Pet_list.js
+ * Quản lý Danh sách Thú Cưng (Xem, Thêm, Sửa, Xóa & Upload Ảnh)
+ */
 
+const API_BASE_URL = "http://localhost:8000/api/v1";
+
+// Ảnh đại diện mặc định dùng chung mẫu SVG của Customer
 const DEFAULT_PET_SVG =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmZmMWViIiByeD0iNTAiLz4KICA8ZyBmaWxsPSIjZmY3YTQ1Ij4KICAgIDxjaXJjbGUgY3g9IjUwIiBjeT0iNTgiIHI9IjE2Ii8+CiAgICA8Y2lyY2xlIGN4PSI5MCIgY3k9IjM4IiByPSI3Ii8+CiAgICA8cGF0aCBkPSJNNTAsNDQgQzQ1LDQ0IDQxLDQ4IDQxLDUzIEM0MSw6MCA1OSw6MCA1OSw1MyBDNTksNDggNTUsNDQgNTAsNDQgWiIvPgogICAgPGNpcmNsZSBjeD0iMjgiIGN5PSI0NiIgcj0iMTAiLz4KICAgIDxjaXJjbGUgY3g9IjcyIiBjeT0iNDYiIHI9IjEwIi8+CiAgICA8Y2lyY2xlIGN4PSIzNCIgY3k9IjI4IiByPSI4Ii8+CiAgICA8Y2lyY2xlIGN4PSI2NiIgY3k9IjI4IiByPSI4Ii8+CiAgPC9nPgo8L3N2Zz4=";
+  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZjlhOWUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZWNmZWYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0idXJsKCNnKSIvPldjdXN0b21lcjxjaXJjbGUgY3g9IjUwIiBjeT0iNDIiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTI1LDc1IEMyNSw1OCA3NSw1OCA3NSw3NSIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==";
 
 let isEditMode = false;
 let currentEditingPetId = null;
 let originalPetData = null;
-let selectedAvatarFile = null;
+let uploadedPetAvatarPath = null;
+let globalPetList = []; // Lưu trữ danh sách thú cưng toàn cục để tự sinh mã
 
 document.addEventListener("DOMContentLoaded", function () {
-  let token = localStorage.getItem("petcare_token");
-  if (!token && window.parent && window.parent.localStorage) {
-    token = window.parent.localStorage.getItem("petcare_token");
-  }
+  const token = getAuthToken();
 
-  if (!token || token === "null" || token.trim() === "") {
+  if (!token) {
     showPetToast("Phiên làm việc hết hạn. Vui lòng đăng nhập lại!", "error");
     return;
   }
 
+  // 1. Tải danh sách thú cưng
   fetchMyPets(token);
 
-  const btnTopAddPet = document.getElementById("btnTopAddPet");
-  if (btnTopAddPet) {
-    btnTopAddPet.addEventListener("click", () => openModalForAdd(token));
-  }
-
+  // 2. Lắng nghe upload ảnh trong modal pet
   const inputModalAvatar = document.getElementById("inputModalAvatar");
   if (inputModalAvatar) {
     inputModalAvatar.addEventListener("change", function (event) {
       const file = event.target.files[0];
-      if (!file) return;
-
-      if (!file.type.startsWith("image/")) {
-        showPetToast("Vui lòng chọn tệp hình ảnh hợp lệ!", "error");
-        return;
-      }
-
-      selectedAvatarFile = file;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        document.getElementById("modalPetAvatar").src = e.target.result;
-      };
-      reader.readAsDataURL(file);
+      if (file) handleUploadPetAvatar(file, token);
     });
   }
 
+  // 3. Sự kiện mở modal Thêm thú cưng
+  const btnTopAddPet = document.getElementById("btnTopAddPet");
+  if (btnTopAddPet) {
+    btnTopAddPet.addEventListener("click", () => openModalForAdd());
+  }
+
+  // 4. Sự kiện submit form
   const formAddPet = document.getElementById("formAddPet");
   if (formAddPet) {
     formAddPet.addEventListener("submit", function (event) {
@@ -62,34 +57,139 @@ document.addEventListener("DOMContentLoaded", function () {
   initModalActions(token);
 });
 
+function getAuthToken() {
+  let token = localStorage.getItem("petcare_token");
+  if (!token && window.parent && window.parent.localStorage) {
+    token = window.parent.localStorage.getItem("petcare_token");
+  }
+  if (!token || token === "null" || token.trim() === "") return null;
+  return token.trim();
+}
+
+/**
+ * ⚙️ HÀM TỰ SINH MÃ THÚ CƯNG DỰA TRÊN LOGIC CODEGENERATORSERVICE (VD: PET-A001)
+ */
+function generateNextPetCode(currentList) {
+  const prefix = "PET";
+  let maxLetter = "A";
+  let maxNumber = 0;
+
+  if (Array.isArray(currentList) && currentList.length > 0) {
+    currentList.forEach((item) => {
+      const codeVal = item.petCode || item.pet_code || "";
+      if (codeVal && codeVal.includes("-")) {
+        const parts = codeVal.split("-");
+        const suffix = parts[parts.length - 1]; // "A001"
+        const letter = suffix.substring(0, 1); // "A"
+        const num = parseInt(suffix.substring(1), 10); // 1
+
+        if (!isNaN(num)) {
+          if (letter > maxLetter) {
+            maxLetter = letter;
+            maxNumber = num;
+          } else if (letter === maxLetter && num > maxNumber) {
+            maxNumber = num;
+          }
+        }
+      }
+    });
+  }
+
+  let nextNumber = maxNumber + 1;
+  let nextLetter = maxLetter;
+
+  if (nextNumber > 99) {
+    nextNumber = 1;
+    nextLetter = String.fromCharCode(nextLetter.charCodeAt(0) + 1);
+  }
+
+  const formattedNum = String(nextNumber).padStart(3, "0");
+  return `${prefix}-${nextLetter}${formattedNum}`;
+}
+
+/**
+ * 📥 Lấy danh sách thú cưng từ API
+ */
 async function fetchMyPets(token) {
   try {
-    const urlParams = new URLSearchParams(window.location.search);
-    const customerId = urlParams.get("customerId");
-
-    let requestUrl = `${BASE_URL}/pet/my-pets`;
-    if (customerId) requestUrl += `?customerId=${customerId}`;
-
-    const response = await fetch(requestUrl, {
+    const response = await fetch(`${API_BASE_URL}/customer/pets`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        Accept: "application/json",
       },
     });
 
-    const result = await response.json();
-    if (response.ok && result.status === true) {
-      renderPetGrid(result.data || [], token);
-    } else {
-      showPetToast(result.message || "Không thể tải danh sách!", "error");
+    const result = await readApiResponse(response);
+
+    if (!response.ok || result.status !== true) {
+      showPetToast(
+        getApiErrorMessage(result, "Không thể tải danh sách thú cưng!"),
+        "error",
+      );
+      return;
     }
+
+    globalPetList = result.data || [];
+    renderPetGrid(globalPetList, token);
   } catch (error) {
-    console.error(error);
-    showPetToast("Lỗi kết nối máy chủ!", "error");
+    console.error("Lỗi lấy danh sách thú cưng:", error);
+    showPetToast("Không thể kết nối máy chủ!", "error");
   }
 }
 
+/**
+ * 📷 Upload Ảnh Thú Cưng
+ */
+async function handleUploadPetAvatar(file, token) {
+  if (!file.type.startsWith("image/")) {
+    showPetToast("Vui lòng chọn tệp hình ảnh hợp lệ!", "error");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("avatar_file", file);
+
+  try {
+    showPetToast("⏳ Đang upload ảnh thú cưng...", "success");
+
+    const response = await fetch(
+      `${API_BASE_URL}/customer/pets/upload-avatar`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        body: formData,
+      },
+    );
+
+    const result = await readApiResponse(response);
+
+    if (!response.ok || result.status !== true) {
+      showPetToast(
+        getApiErrorMessage(result, "Upload ảnh bé cưng thất bại!"),
+        "error",
+      );
+      return;
+    }
+
+    uploadedPetAvatarPath = result.data;
+    document.getElementById("modalPetAvatar").src = getImageUrl(
+      uploadedPetAvatarPath,
+    );
+
+    showPetToast("🎉 Upload ảnh thú cưng thành công!", "success");
+  } catch (error) {
+    console.error("Lỗi upload ảnh pet:", error);
+    showPetToast("Lỗi kết nối khi tải ảnh lên!", "error");
+  }
+}
+
+/**
+ * 🎨 Hiển thị danh sách thú cưng
+ */
 function renderPetGrid(pets, token) {
   const petGrid = document.querySelector(".pet-grid");
   if (!petGrid) return;
@@ -112,7 +212,6 @@ function renderPetGrid(pets, token) {
     const ageText = pet.age ? formatPetAge(pet.age) : "Chưa rõ";
     const noteText = pet.healthNote || "Thân thiện, khỏe mạnh";
 
-    // Chỉ render đúng 4 trường theo đúng giao diện
     petCard.innerHTML = `
       <div class="card-main-body">
         <div class="card-img-wrapper">
@@ -121,7 +220,7 @@ function renderPetGrid(pets, token) {
         <div class="card-info-box">
           <div class="card-top-row">
             <h3 class="card-pet-name"><i class="fa-solid fa-paw icon-species"></i> Bé ${pet.petName || "Chưa tên"}</h3>
-            <span class="card-badge-status">Đang hoạt động</span>
+            <span class="card-badge-status">Mã: ${pet.petCode || "Chưa cấp"}</span>
           </div>
           <div class="card-details-list">
             <div class="detail-item">
@@ -162,24 +261,144 @@ function renderPetGrid(pets, token) {
     <div class="add-circle-icon"><i class="fa-solid fa-plus"></i></div>
     <span class="add-trigger-text">Thêm Bé Cưng</span>
   `;
-  addCard.addEventListener("click", () => openModalForAdd(token));
+  addCard.addEventListener("click", () => openModalForAdd());
   petGrid.appendChild(addCard);
 }
 
-function formatPetAge(ageInMonths) {
-  const months = parseInt(ageInMonths);
-  if (isNaN(months) || months <= 0) return "Mới sinh";
-  if (months < 12) return `${months} tháng`;
-  const years = Math.floor(months / 12);
-  const remMonths = months % 12;
-  return remMonths > 0 ? `${years} tuổi ${remMonths} tháng` : `${years} tuổi`;
+/**
+ * ➕ Thêm Thú Cưng
+ */
+async function submitAddPet(token) {
+  const payload = getPetFormData();
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/customer/pets/create`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await readApiResponse(response);
+
+    if (!response.ok || result.status !== true) {
+      showPetToast(
+        getApiErrorMessage(result, "Thêm bé cưng thất bại!"),
+        "error",
+      );
+      return;
+    }
+
+    showPetToast(result.message || "🎉 Thêm bé cưng thành công!", "success");
+    closeAndReloadModal(token);
+  } catch (error) {
+    console.error("Lỗi thêm pet:", error);
+    showPetToast("Mất kết nối tới máy chủ!", "error");
+  }
 }
 
-async function openModalForAdd(token) {
+/**
+ * ✏️ Cập nhật Thú Cưng
+ */
+async function submitUpdatePet(token) {
+  if (!currentEditingPetId) return;
+
+  const payload = getPetFormData();
+
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/customer/pets/${currentEditingPetId}/update`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+
+    const result = await readApiResponse(response);
+
+    if (!response.ok || result.status !== true) {
+      showPetToast(getApiErrorMessage(result, "Cập nhật thất bại!"), "error");
+      return;
+    }
+
+    showPetToast(
+      result.message || "🎉 Cập nhật thông tin bé cưng thành công!",
+      "success",
+    );
+    closeAndReloadModal(token);
+  } catch (error) {
+    console.error("Lỗi cập nhật pet:", error);
+    showPetToast("Mất kết nối tới máy chủ!", "error");
+  }
+}
+
+/**
+ * 🗑️ Xóa Thú Cưng
+ */
+async function submitDeletePet(token) {
+  if (!currentEditingPetId) return;
+  if (!confirm("Bạn có chắc chắn muốn xóa thông tin bé cưng này?")) return;
+
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/customer/pets/${currentEditingPetId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      },
+    );
+
+    const result = await readApiResponse(response);
+
+    if (!response.ok || result.status !== true) {
+      showPetToast(
+        getApiErrorMessage(result, "Không thể xóa bé cưng!"),
+        "error",
+      );
+      return;
+    }
+
+    showPetToast(result.message || "🗑️ Đã xóa bé cưng!", "success");
+    closeAndReloadModal(token);
+  } catch (error) {
+    console.error("Lỗi xóa pet:", error);
+    showPetToast("Lỗi kết nối khi xóa dữ liệu!", "error");
+  }
+}
+
+function getPetFormData() {
+  return {
+    petCode: document.getElementById("modalPetCode").value.trim(),
+    petName: document.getElementById("modalPetName").value.trim(),
+    species: document.getElementById("modalSpecies").value || null,
+    breed: document.getElementById("modalBreed").value.trim() || null,
+    age: parseInt(document.getElementById("modalPetAge").value) || null,
+    weight: parseFloat(document.getElementById("modalWeight").value) || null,
+    gender: document.getElementById("modalPetGender").value || null,
+    avatar: uploadedPetAvatarPath || null,
+    healthNote: document.getElementById("modalHealthNote").value.trim() || null,
+  };
+}
+
+/**
+ * ➕ Mở Modal Thêm mới: Tự sinh mã PET-A00x dựa theo danh sách hiện có
+ */
+function openModalForAdd() {
   isEditMode = false;
   currentEditingPetId = null;
   originalPetData = null;
-  selectedAvatarFile = null;
+  uploadedPetAvatarPath = null;
 
   document.querySelector(".modal-header h3").innerText = "Thêm Bé Cưng Mới";
   const btnDelete = document.getElementById("btnModalDelete");
@@ -187,22 +406,10 @@ async function openModalForAdd(token) {
 
   document.getElementById("formAddPet").reset();
   document.getElementById("modalPetAvatar").src = DEFAULT_PET_SVG;
-  document.getElementById("modalPetCode").value = "Đang lấy mã...";
 
-  try {
-    const res = await fetch(`${BASE_URL}/pet/next-code`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const result = await res.json();
-    if (res.ok && result.status === true) {
-      document.getElementById("modalPetCode").value = result.data;
-    } else {
-      document.getElementById("modalPetCode").value = "Tự sinh...";
-    }
-  } catch (err) {
-    document.getElementById("modalPetCode").value = "Tự sinh...";
-  }
+  // Hiển thị ngay lập tức mã tự sinh theo chuẩn PET-A001, PET-A002...
+  document.getElementById("modalPetCode").value =
+    generateNextPetCode(globalPetList);
 
   document.getElementById("petModal").classList.add("active");
 }
@@ -210,7 +417,7 @@ async function openModalForAdd(token) {
 function openModalForEdit(pet) {
   isEditMode = true;
   currentEditingPetId = pet.petId;
-  selectedAvatarFile = null;
+  uploadedPetAvatarPath = pet.avatar || null;
   originalPetData = JSON.parse(JSON.stringify(pet));
 
   document.querySelector(".modal-header h3").innerText =
@@ -255,96 +462,6 @@ function renderDeleteButton() {
   btnDelete.style.display = "block";
 }
 
-async function submitAddPet(token) {
-  const formData = getFormFormData();
-  const urlParams = new URLSearchParams(window.location.search);
-  const customerId = urlParams.get("customerId");
-  if (customerId) formData.append("customerId", customerId);
-
-  try {
-    const response = await fetch(`${BASE_URL}/pet/add`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
-    const result = await response.json();
-    if (response.ok && result.status === true) {
-      showPetToast("🎉 Thêm bé cưng thành công!", "success");
-      closeAndReloadModal(token);
-    } else {
-      showPetToast(result.message || "Thêm thất bại!", "error");
-    }
-  } catch (error) {
-    showPetToast("Mất kết nối máy chủ!", "error");
-  }
-}
-
-async function submitUpdatePet(token) {
-  const formData = getFormFormData();
-  formData.append("petId", String(currentEditingPetId));
-
-  try {
-    const response = await fetch(`${BASE_URL}/pet/update`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
-    const result = await response.json();
-    if (response.ok && result.status === true) {
-      showPetToast("🎉 Cập nhật thành công!", "success");
-      closeAndReloadModal(token);
-    } else {
-      showPetToast(result.message || "Cập nhật thất bại!", "error");
-    }
-  } catch (error) {
-    showPetToast("Mất kết nối máy chủ!", "error");
-  }
-}
-
-async function submitDeletePet(token) {
-  if (!currentEditingPetId) return;
-  if (!confirm("Bạn có chắc chắn muốn xóa bé cưng này?")) return;
-
-  try {
-    const response = await fetch(
-      `${BASE_URL}/pet/delete?id=${currentEditingPetId}`,
-      {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    );
-    const result = await response.json();
-    if (response.ok && result.status === true) {
-      showPetToast("🗑️ Đã xóa thông tin bé cưng!", "success");
-      closeAndReloadModal(token);
-    } else {
-      showPetToast(result.message || "Không thể xóa!", "error");
-    }
-  } catch (error) {
-    showPetToast("Lỗi kết nối xóa dữ liệu!", "error");
-  }
-}
-
-function getFormFormData() {
-  const formData = new FormData();
-  formData.append(
-    "petName",
-    document.getElementById("modalPetName").value.trim(),
-  );
-  formData.append("species", document.getElementById("modalSpecies").value);
-  formData.append("breed", document.getElementById("modalBreed").value.trim());
-  formData.append("age", document.getElementById("modalPetAge").value || "");
-  formData.append("weight", document.getElementById("modalWeight").value || "");
-  formData.append("gender", document.getElementById("modalPetGender").value);
-  formData.append(
-    "healthNote",
-    document.getElementById("modalHealthNote").value.trim(),
-  );
-
-  if (selectedAvatarFile) formData.append("avatar_file", selectedAvatarFile);
-  return formData;
-}
-
 function closeAndReloadModal(token) {
   document.getElementById("petModal").classList.remove("active");
   fetchMyPets(token);
@@ -366,12 +483,13 @@ function initModalActions(token) {
     resetBtn.addEventListener("click", () => {
       if (isEditMode && originalPetData) {
         fillPetForm(originalPetData);
-        selectedAvatarFile = null;
+        uploadedPetAvatarPath = originalPetData.avatar || null;
       } else {
         document.getElementById("formAddPet").reset();
         document.getElementById("modalPetAvatar").src = DEFAULT_PET_SVG;
-        selectedAvatarFile = null;
-        openModalForAdd(token);
+        document.getElementById("modalPetCode").value =
+          generateNextPetCode(globalPetList);
+        uploadedPetAvatarPath = null;
       }
     });
   }
@@ -386,6 +504,37 @@ function initModalActions(token) {
   }
 }
 
+function formatPetAge(ageInMonths) {
+  const months = parseInt(ageInMonths);
+  if (isNaN(months) || months <= 0) return "Mới sinh";
+  if (months < 12) return `${months} tháng`;
+  const years = Math.floor(months / 12);
+  const remMonths = months % 12;
+  return remMonths > 0 ? `${years} tuổi ${remMonths} tháng` : `${years} tuổi`;
+}
+
+async function readApiResponse(response) {
+  try {
+    return await response.json();
+  } catch (error) {
+    throw new Error("Máy chủ trả về dữ liệu không hợp lệ.");
+  }
+}
+
+function getApiErrorMessage(result, fallback) {
+  const validationErrors = result?.errors;
+  if (validationErrors && typeof validationErrors === "object") {
+    const firstErrorList = Object.values(validationErrors);
+    if (firstErrorList.length > 0) {
+      const firstMsg = Array.isArray(firstErrorList[0])
+        ? firstErrorList[0][0]
+        : firstErrorList[0];
+      if (firstMsg) return firstMsg;
+    }
+  }
+  return result?.message || fallback;
+}
+
 function getImageUrl(path) {
   if (!path || path.trim() === "") return DEFAULT_PET_SVG;
   if (
@@ -394,26 +543,27 @@ function getImageUrl(path) {
     path.startsWith("data:image/")
   )
     return path;
-  return SERVER_HOST + (path.startsWith("/") ? path : "/" + path);
+  return `http://localhost:8000/${path.startsWith("/") ? path.slice(1) : path}`;
 }
 
 function showPetToast(message, type = "success") {
-  let container = null;
-  if (window.parent && window.parent.document) {
+  let container = document.getElementById("pet-toast-container");
+  if (!container && window.parent && window.parent.document) {
     container = window.parent.document.getElementById("pet-toast-container");
   }
   if (!container) {
-    container = document.getElementById("pet-toast-container");
-    if (!container) {
-      container = document.createElement("div");
-      container.id = "pet-toast-container";
-      document.body.appendChild(container);
-    }
+    container = document.createElement("div");
+    container.id = "pet-toast-container";
+    container.style.cssText =
+      "position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;";
+    document.body.appendChild(container);
   }
 
   const toast = document.createElement("div");
   toast.className = `pet-toast ${type}`;
-  toast.style.cssText = `padding: 10px 16px; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; background: ${type === "success" ? "#52c41a" : "#ff4d4f"}`;
+  toast.style.cssText = `padding: 10px 16px; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; background: ${
+    type === "success" ? "#52c41a" : "#ff4d4f"
+  }`;
   toast.innerHTML = `<span>${type === "success" ? "🎉" : "❌"}</span> <span>${message}</span>`;
 
   container.appendChild(toast);
