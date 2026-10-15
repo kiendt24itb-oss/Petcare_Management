@@ -14,6 +14,7 @@ class CustomerResource extends JsonResource
             'customerId'     => $this->customer_id,
             'customerCode'   => $this->customer_code,
             'accountId'      => $this->account_id,
+            'username'       => $this->account ? $this->account->username : null,
             'fullName'       => $this->full_name,
             'age'            => $this->age,
             'gender'         => $this->gender,
@@ -22,15 +23,8 @@ class CustomerResource extends JsonResource
             'address'        => $this->address,
             'avatar'         => $this->avatar,
             'violationCount' => $this->violation_count,
-            'createdAt'      => $this->created_at ? Carbon::parse($this->created_at)->format('Y-m-d H:i:s') : null,
             'pets'           => PetResource::collection($this->whenLoaded('pets')),
-            'account'        => $this->whenLoaded('account', function () {
-                return [
-                    'accountId' => $this->account->account_id,
-                    'username'  => $this->account->username,
-                    'status'    => $this->account->status,
-                ];
-            }),
+            'createdAt'      => $this->created_at ? Carbon::parse($this->created_at)->format('Y-m-d H:i:s') : null,
         ];
     }
 }

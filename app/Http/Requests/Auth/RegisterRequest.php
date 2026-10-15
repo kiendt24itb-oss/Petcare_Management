@@ -17,7 +17,7 @@ class RegisterRequest extends FormRequest
             'username'  => 'required|string|max:100|unique:accounts,username',
             'email'     => 'required|email|max:255|unique:accounts,email',
             'password'  => 'required|string|min:6',
-            'full_name' => 'required|string|max:250',
+            'full_name' => 'nullable|string|max:250', // Bỏ required, chuyển thành nullable
             'phone'     => 'nullable|string|max:15',
         ];
     }
@@ -32,7 +32,6 @@ class RegisterRequest extends FormRequest
             'email.unique'      => 'Email đã tồn tại trên hệ thống!',
             'password.required' => 'Vui lòng nhập mật khẩu!',
             'password.min'      => 'Mật khẩu phải có ít nhất 6 ký tự!',
-            'full_name.required' => 'Vui lòng nhập họ và tên!',
         ];
     }
 }

@@ -19,7 +19,7 @@ class CreatePetRequest extends FormRequest
             'breed'      => 'nullable|string|max:100',
             'age'        => 'nullable|integer|min:0',
             'weight'     => 'nullable|numeric|min:0',
-            'gender'     => 'nullable|string|in:MALE,FEMALE',
+            'gender'     => 'nullable|in:MALE,FEMALE',
             'avatar'     => 'nullable|string|max:500',
             'healthNote' => 'nullable|string',
         ];
@@ -30,6 +30,7 @@ class CreatePetRequest extends FormRequest
         return [
             'petName.required' => 'Tên thú cưng không được để trống!',
             'gender.in'        => 'Giới tính thú cưng không hợp lệ!',
+            'weight.numeric'   => 'Cân nặng phải là một số!',
         ];
     }
 }

@@ -6,7 +6,6 @@ use App\Repositories\Contracts\CustomerRepositoryInterface;
 use App\Repositories\Contracts\PetRepositoryInterface;
 use App\Services\CodeGeneratorService;
 use Exception;
-use Illuminate\Support\Facades\DB;
 
 class PetService
 {
@@ -21,104 +20,99 @@ class PetService
         $this->customerRepo = $customerRepo;
     }
 
-    public function getPetsByAccountId(int $accountId)
+    /**
+     * Lấy danh sách thú cưng của Customer đang đăng nhập
+     */
+    public function getMyPets(int $accountId)
     {
         $customer = $this->customerRepo->findByAccountId($accountId);
         if (!$customer) {
-            return collect();
+            throw new Exception('Không tìm thấy thông tin khách hàng!');
         }
+
         return $this->petRepo->getByCustomerId($customer->customer_id);
     }
 
-    public function getPetById(int $id)
+    /**
+     * Dành cho Admin xem danh sách thú cưng của 1 khách hàng
+     */
+    public function getPetsByCustomerId(int $customerId)
     {
-        $pet = $this->petRepo->findById($id);
-        if (!$pet) {
-            throw new Exception('Không tìm thấy thông tin thú cưng!');
+        return $this->petRepo->getByCustomerId($customerId);
+    }
+
+    /**
+     * Lấy chi tiết 1 thú cưng thuộc sở hữu của Customer đang đăng nhập
+     */
+    public function getMyPetDetail(int $petId, int $accountId)
+    {
+        $customer = $this->customerRepo->findByAccountId($accountId);
+        if (!$customer) {
+            throw new Exception('Không tìm thấy thông tin khách hàng!');
         }
+
+        $pet = $this->petRepo->findByIdAndCustomerId($petId, $customer->customer_id);
+        if (!$pet) {
+            throw new Exception('Không tìm thấy thú cưng hoặc bạn không có quyền truy cập!');
+        }
+
         return $pet;
     }
 
     /**
-     * Khách hàng thêm mới thú cưng
+     * Dành cho Customer: Thêm thú cưng mới
      */
     public function createPet(int $accountId, array $data)
     {
-        return DB::transaction(function () use ($accountId, $data) {
-            $customer = $this->customerRepo->findByAccountId($accountId);
-            if (!$customer) {
-                throw new Exception('Chưa tìm thấy thông tin hồ sơ khách hàng. Vui lòng cập nhật hồ sơ trước!');
-            }
+        $customer = $this->customerRepo->findByAccountId($accountId);
+        if (!$customer) {
+            throw new Exception('Không tìm thấy tài khoản khách hàng!');
+        }
 
-            $payload = [
-                'pet_code'    => CodeGeneratorService::generate('pets', 'pet_code', 'pet'),
-                'customer_id' => $customer->customer_id,
-                'pet_name'    => $data['petName'],
-                'species'     => $data['species'] ?? null,
-                'breed'       => $data['breed'] ?? null,
-                'age'         => $data['age'] ?? null,
-                'weight'      => $data['weight'] ?? null,
-                'gender'      => $data['gender'] ?? null,
-                'avatar'      => $data['avatar'] ?? null,
-                'health_note' => $data['healthNote'] ?? null,
-            ];
+        if (empty($data['pet_code'])) {
+            $data['pet_code'] = CodeGeneratorService::generate('pets', 'pet_code', 'pet');
+        }
 
-            return $this->petRepo->create($payload);
-        });
+        $data['customer_id'] = $customer->customer_id;
+
+        return $this->petRepo->create($data);
     }
 
     /**
-     * Khách hàng cập nhật thông tin thú cưng của mình
+     * Dành cho Customer: Cập nhật thú cưng
      */
-    public function updatePet(int $accountId, int $petId, array $data)
+    public function updatePet(int $petId, int $accountId, array $data)
     {
-        return DB::transaction(function () use ($accountId, $petId, $data) {
-            $customer = $this->customerRepo->findByAccountId($accountId);
-            $pet = $this->petRepo->findById($petId);
+        $customer = $this->customerRepo->findByAccountId($accountId);
+        if (!$customer) {
+            throw new Exception('Không tìm thấy tài khoản khách hàng!');
+        }
 
-            if (!$pet) {
-                throw new Exception('Thú cưng không tồn tại!');
-            }
+        unset($data['pet_code'], $data['customer_id']);
 
-            // Kiểm tra chính chủ
-            if ($pet->customer_id !== $customer->customer_id) {
-                throw new Exception('Bạn không có quyền chỉnh sửa thú cưng này!');
-            }
+        $updated = $this->petRepo->update($petId, $customer->customer_id, $data);
+        if (!$updated) {
+            throw new Exception('Cập nhật thất bại hoặc thú cưng không thuộc sở hữu của bạn!');
+        }
 
-            $updateData = [
-                'pet_name'    => $data['petName'] ?? $pet->pet_name,
-                'species'     => $data['species'] ?? $pet->species,
-                'breed'       => $data['breed'] ?? $pet->breed,
-                'age'         => $data['age'] ?? $pet->age,
-                'weight'      => $data['weight'] ?? $pet->weight,
-                'gender'      => $data['gender'] ?? $pet->gender,
-                'avatar'      => $data['avatar'] ?? $pet->avatar,
-                'health_note' => $data['healthNote'] ?? $pet->health_note,
-            ];
-
-            $this->petRepo->update($petId, $updateData);
-            return $this->petRepo->findById($petId);
-        });
+        return true;
     }
 
     /**
-     * Khách hàng xóa thú cưng của mình
+     * Dành cho Customer: Xóa thú cưng
      */
-    public function deletePet(int $accountId, int $petId)
+    public function deletePet(int $petId, int $accountId)
     {
-        return DB::transaction(function () use ($accountId, $petId) {
-            $customer = $this->customerRepo->findByAccountId($accountId);
-            $pet = $this->petRepo->findById($petId);
+        $customer = $this->customerRepo->findByAccountId($accountId);
+        if (!$customer) {
+            throw new Exception('Không tìm thấy tài khoản khách hàng!');
+        }
 
-            if (!$pet) {
-                throw new Exception('Thú cưng cần xóa không tồn tại!');
-            }
+        $deleted = $this->petRepo->delete($petId, $customer->customer_id);
+        if (!$deleted) {
+            throw new Exception('Xóa thất bại hoặc thú cưng không thuộc sở hữu của bạn!');
+        }
 
-            if ($pet->customer_id !== $customer->customer_id) {
-                throw new Exception('Bạn không có quyền xóa thú cưng này!');
-            }
-
-            return $this->petRepo->delete($petId);
-        });
+        return true;
     }
 }

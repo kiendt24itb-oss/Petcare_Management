@@ -8,22 +8,16 @@ use App\Http\Controllers\Api\Admin\ServiceCategoryController;
 use App\Http\Controllers\Api\Admin\RoomTypeController;
 use App\Http\Controllers\Api\Admin\RoomController;
 use App\Http\Controllers\Api\Admin\ServiceController;
-use App\Http\Controllers\Api\Admin\PositionController as AdminPositionController;
-use App\Http\Controllers\Api\Admin\StaffController as AdminStaffController;
-use App\Http\Controllers\Api\Admin\CustomerController as AdminCustomerController;
-
-// Controllers Tầng Staff
-use App\Http\Controllers\Api\Staff\ProfileController as StaffProfileController;
+use App\Http\Controllers\Api\Admin\AdminCustomerController;
 
 // Controllers Tầng Customer
-use App\Http\Controllers\Api\Customer\ProfileController as CustomerProfileController;
-use App\Http\Controllers\Api\Customer\PetController as CustomerPetController;
+use App\Http\Controllers\Api\Customer\CustomerProfileController;
 
 Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | AUTHENTICATION ROUTES (BỔ SUNG)
+    | AUTHENTICATION ROUTES (Giữ nguyên)
     |--------------------------------------------------------------------------
     */
     Route::prefix('auth')->group(function () {
@@ -34,12 +28,14 @@ Route::prefix('v1')->group(function () {
         Route::middleware('auth:api')->group(function () {
             Route::post('logout', [AuthController::class, 'logout']);
             Route::get('me', [AuthController::class, 'me']);
+            Route::post('update-credentials', [AuthController::class, 'updateCredentials']);
+            Route::post('update-staff-profile', [AuthController::class, 'updateStaffProfile']);
         });
     });
 
     /*
     |--------------------------------------------------------------------------
-    | SHARED / PUBLIC DATA
+    | SHARED / PUBLIC DATA (Giữ nguyên)
     |--------------------------------------------------------------------------
     */
     Route::get('service-categories', [ServiceCategoryController::class, 'index']);
@@ -57,7 +53,21 @@ Route::prefix('v1')->group(function () {
         ->prefix('admin')
         ->group(function () {
 
-            // ROOMS
+            // SERVICE CATEGORIES (DANH MỤC DỊCH VỤ)
+            Route::prefix('service-categories')->group(function () {
+                Route::get('', [ServiceCategoryController::class, 'index']);
+                Route::post('create', [ServiceCategoryController::class, 'store']);
+                Route::delete('delete', [ServiceCategoryController::class, 'destroy']);
+            });
+
+            // ROOM TYPES (LOẠI PHÒNG)
+            Route::prefix('room-types')->group(function () {
+                Route::get('', [RoomTypeController::class, 'index']);
+                Route::post('create', [RoomTypeController::class, 'store']);
+                Route::delete('delete', [RoomTypeController::class, 'destroy']);
+            });
+
+            // ROOMS (PHÒNG)
             Route::prefix('rooms')->group(function () {
                 Route::get('', [RoomController::class, 'index']);
                 Route::post('create', [RoomController::class, 'store']);
@@ -67,10 +77,10 @@ Route::prefix('v1')->group(function () {
                 Route::delete('delete', [RoomController::class, 'destroy']);
             });
 
-            // SERVICES
+            // SERVICES (DỊCH VỤ)
             Route::prefix('services')->group(function () {
                 Route::get('', [ServiceController::class, 'index']);
-                Route::get('detail', [ServiceController::class, 'show']);
+                Route::get('detail/{id}', [ServiceController::class, 'show']);
                 Route::post('upload-image', [ServiceController::class, 'uploadImage']);
                 Route::post('create', [ServiceController::class, 'store']);
                 Route::post('update', [ServiceController::class, 'update']);
@@ -94,28 +104,16 @@ Route::prefix('v1')->group(function () {
                 Route::post('update', [AdminStaffController::class, 'update']);
             });
 
-            // CUSTOMERS (KHÁCH HÀNG)
+            // CUSTOMERS (KHÁCH HÀNG - DÀNH CHO ADMIN)
             Route::prefix('customers')->group(function () {
                 Route::get('', [AdminCustomerController::class, 'index']);
-                Route::get('detail', [AdminCustomerController::class, 'show']);
+                Route::get('summary', [AdminCustomerController::class, 'summaryStats']);
+                Route::get('{id}', [AdminCustomerController::class, 'show']);
+                Route::get('{id}/pets', [AdminCustomerController::class, 'getCustomerPets']);
+                
+                // Đăng ký route khóa / mở khóa tài khoản
                 Route::post('toggle-account-status', [AdminCustomerController::class, 'toggleAccountStatus']);
-            });
-
-        });
-
-    /*
-    |--------------------------------------------------------------------------
-    | STAFF ROUTES
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware(['auth:api', \App\Http\Middleware\CheckRoleStaff::class])
-        ->prefix('staff')
-        ->group(function () {
-
-            Route::prefix('profile')->group(function () {
-                Route::get('', [StaffProfileController::class, 'show']);
-                Route::post('update', [StaffProfileController::class, 'update']);
-                Route::post('upload-avatar', [StaffProfileController::class, 'uploadAvatar']);
+                Route::post('change-status', [AdminCustomerController::class, 'toggleAccountStatus']);
             });
 
         });
@@ -129,19 +127,21 @@ Route::prefix('v1')->group(function () {
         ->prefix('customer')
         ->group(function () {
 
+            // QUẢN LÝ THÔNG TIN CÁ NHÂN (CUSTOMER PROFILE)
             Route::prefix('profile')->group(function () {
-                Route::get('', [CustomerProfileController::class, 'show']);
-                Route::post('update', [CustomerProfileController::class, 'update']);
+                Route::get('', [CustomerProfileController::class, 'getProfile']);
+                Route::post('update', [CustomerProfileController::class, 'updateProfile']);
                 Route::post('upload-avatar', [CustomerProfileController::class, 'uploadAvatar']);
             });
 
+            // QUẢN LÝ THÚ CƯNG (PET MANAGEMENT)
             Route::prefix('pets')->group(function () {
-                Route::get('', [CustomerPetController::class, 'index']);
-                Route::get('detail', [CustomerPetController::class, 'show']);
-                Route::post('create', [CustomerPetController::class, 'store']);
-                Route::post('update', [CustomerPetController::class, 'update']);
-                Route::post('upload-avatar', [CustomerPetController::class, 'uploadAvatar']);
-                Route::delete('delete', [CustomerPetController::class, 'destroy']);
+                Route::get('', [CustomerProfileController::class, 'getMyPets']);
+                Route::post('create', [CustomerProfileController::class, 'addPet']);
+                Route::get('{id}', [CustomerProfileController::class, 'getPetDetail']);
+                Route::post('{id}/update', [CustomerProfileController::class, 'updatePet']);
+                Route::delete('{id}', [CustomerProfileController::class, 'deletePet']);
+                Route::post('upload-avatar', [CustomerProfileController::class, 'uploadPetAvatar']);
             });
 
         });

@@ -24,6 +24,14 @@ use App\Repositories\Eloquent\RoomRepository;
 use App\Repositories\Contracts\ServiceRepositoryInterface;
 use App\Repositories\Eloquent\ServiceRepository;
 
+// Customer Repository
+use App\Repositories\Contracts\CustomerRepositoryInterface;
+use App\Repositories\Eloquent\CustomerRepository;
+
+// Pet Repository
+use App\Repositories\Contracts\PetRepositoryInterface;
+use App\Repositories\Eloquent\PetRepository;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -59,6 +67,18 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             ServiceRepositoryInterface::class,
             ServiceRepository::class
+        );
+
+        // Bind Customer Repository
+        $this->app->bind(
+            CustomerRepositoryInterface::class,
+            CustomerRepository::class
+        );
+
+        // Bind Pet Repository
+        $this->app->bind(
+            PetRepositoryInterface::class,
+            PetRepository::class
         );
     }
 
