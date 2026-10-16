@@ -275,12 +275,10 @@ CREATE TABLE bookings (
     actual_end_time     DATETIME,                                     -- Thời gian kết thúc thực tế
     status              ENUM(
                             'PENDING',
-                            'CONFIRMED',
-                            'CHECKED_IN',
+                            'PENDING_APPROVAL',
                             'PROCESSING',
                             'COMPLETED',
-                            'CANCELLED',
-                            'NO_SHOW'
+                            'CANCELLED'
                         ) NOT NULL DEFAULT 'PENDING',                 -- Trạng thái đơn
     note                TEXT,                                         -- Ghi chú
     created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,           -- Ngày tạo

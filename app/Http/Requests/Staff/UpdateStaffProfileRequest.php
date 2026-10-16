@@ -15,8 +15,7 @@ class UpdateStaffProfileRequest extends FormRequest
     {
         return [
             'fullName'  => 'required|string|max:250',
-            'email'     => 'nullable|email|max:250',
-            'phone'     => 'nullable|string|max:15',
+            'phone'     => 'required|string|max:15',
             'citizenId' => 'nullable|string|max:20',
             'address'   => 'nullable|string|max:500',
             'avatar'    => 'nullable|string|max:500',
@@ -27,7 +26,7 @@ class UpdateStaffProfileRequest extends FormRequest
     {
         return [
             'fullName.required' => 'Họ và tên không được để trống!',
-            'email.email'       => 'Email không đúng định dạng!',
+            'phone.required'    => 'Số điện thoại không được để trống!',
         ];
     }
 }

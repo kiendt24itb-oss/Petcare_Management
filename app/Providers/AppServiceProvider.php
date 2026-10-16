@@ -32,6 +32,14 @@ use App\Repositories\Eloquent\CustomerRepository;
 use App\Repositories\Contracts\PetRepositoryInterface;
 use App\Repositories\Eloquent\PetRepository;
 
+// Staff Repository
+use App\Repositories\Contracts\StaffRepositoryInterface;
+use App\Repositories\Eloquent\StaffRepository;
+
+// Position Repository (🟢 BỔ SUNG)
+use App\Repositories\Contracts\PositionRepositoryInterface;
+use App\Repositories\Eloquent\PositionRepository;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -79,6 +87,18 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             PetRepositoryInterface::class,
             PetRepository::class
+        );
+
+        // Bind Staff Repository
+        $this->app->bind(
+            StaffRepositoryInterface::class,
+            StaffRepository::class
+        );
+
+        // Bind Position Repository (🟢 BỔ SUNG)
+        $this->app->bind(
+            PositionRepositoryInterface::class,
+            PositionRepository::class
         );
     }
 

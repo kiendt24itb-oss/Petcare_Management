@@ -14,8 +14,9 @@ class StaffResource extends JsonResource
             'staffId'        => $this->staff_id,
             'staffCode'      => $this->staff_code,
             'accountId'      => $this->account_id,
-            'positionId'     => $this->position_id,
-            'positionName'   => $this->position ? $this->position->position_name : null,
+            'username'       => $this->account ? $this->account->username : null,
+            'accountStatus'  => $this->account ? $this->account->status : null,
+            'position'       => new PositionResource($this->whenLoaded('position')),
             'fullName'       => $this->full_name,
             'email'          => $this->email,
             'phone'          => $this->phone,
@@ -26,15 +27,6 @@ class StaffResource extends JsonResource
             'isWorking'      => (bool) $this->is_working,
             'createdAt'      => $this->created_at ? Carbon::parse($this->created_at)->format('Y-m-d H:i:s') : null,
             'updatedAt'      => $this->updated_at ? Carbon::parse($this->updated_at)->format('Y-m-d H:i:s') : null,
-            'position'       => new PositionResource($this->whenLoaded('position')),
-            'account'        => $this->whenLoaded('account', function () {
-                return [
-                    'accountId' => $this->account->account_id,
-                    'username'  => $this->account->username,
-                    'email'     => $this->account->email,
-                    'status'    => $this->account->status,
-                ];
-            }),
         ];
     }
 }
