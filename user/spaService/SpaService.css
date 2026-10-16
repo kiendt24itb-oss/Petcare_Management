@@ -12,6 +12,8 @@
 
   --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.03);
   --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+  --bk-gradient: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
 }
 
 * {
@@ -30,20 +32,19 @@
 body {
   background-color: var(--bg-light);
   color: var(--text-main);
-  padding: 24px 16px;
+  padding: clamp(16px, 2.5vw, 32px);
 }
 
 .container {
-  max-width: 1140px;
+  width: 100%;
+  max-width: 1650px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-/* ==========================================
-   1. HERO BANNER
-   ========================================== */
+/* HERO BANNER */
 .hero-banner {
   position: relative;
   background: #fbf9ff;
@@ -86,8 +87,8 @@ body {
 .banner-content {
   position: relative;
   z-index: 3;
-  padding: 36px 40px;
-  max-width: 580px;
+  padding: clamp(24px, 3.5vw, 44px);
+  max-width: 620px;
 }
 
 .spa-icon-badge {
@@ -105,7 +106,7 @@ body {
 }
 
 .banner-title {
-  font-size: 32px;
+  font-size: clamp(26px, 2.8vw, 36px);
   font-weight: 800;
   color: #1f192f;
   margin-bottom: 8px;
@@ -134,19 +135,15 @@ body {
   gap: 6px;
 }
 
-/* ==========================================
-   2. MAIN LAYOUT
-   ========================================== */
+/* MAIN LAYOUT */
 .main-layout {
   display: flex;
   gap: 24px;
   align-items: flex-start;
 }
 
-/* LEFT SIDEBAR */
 .sidebar-info {
-  width: 340px;
-  flex-shrink: 0;
+  flex: 0 0 clamp(300px, 25vw, 380px);
 }
 
 .info-card {
@@ -178,12 +175,11 @@ body {
   margin-bottom: 20px;
 }
 
-/* 4 MỤC GỘM TRONG 1 KHUNG MÀU BO VIỀN */
 .features-list-wrapper {
   background: #f7f5ff;
   border: 1px solid #ede7fe;
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -263,7 +259,7 @@ body {
   pointer-events: none;
 }
 
-/* RIGHT SECTION: KHU VỰC DANH SÁCH DỊCH VỤ SPA */
+/* RIGHT SECTION: SPA SERVICES LIST */
 .services-section {
   flex: 1;
   min-width: 0;
@@ -309,18 +305,17 @@ body {
   color: var(--text-muted);
 }
 
-/* KHUNG CUỘN ĐỘC LẬP TRANG MẸ - CON */
+/* 🌟 KHUNG CUỘN ĐỘC LẬP DỊCH VỤ SPA */
 .services-scroll-area {
-  max-height: 520px;
+  max-height: 580px;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-right: 8px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 18px;
 }
 
-/* Thanh cuộn độc lập cho danh sách con */
 .services-scroll-area::-webkit-scrollbar {
   width: 6px;
 }
@@ -335,11 +330,6 @@ body {
   border-radius: 10px;
 }
 
-.services-scroll-area::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-purple);
-}
-
-/* THẺ DỊCH VỤ SPA */
 .service-card {
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -347,21 +337,17 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 235px;
-  height: 100%;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: all 0.25s ease;
 }
 
 .service-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-hover);
   border-color: #ddd6fe;
 }
 
 .service-img-wrapper {
-  height: 110px;
+  height: 130px;
   width: 100%;
   flex-shrink: 0;
   overflow: hidden;
@@ -374,23 +360,23 @@ body {
 }
 
 .service-body {
-  padding: 12px 14px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   flex: 1;
 }
 
 .service-name {
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: 700;
   color: #1f192f;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .service-desc {
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--text-muted);
-  line-height: 1.4;
+  line-height: 1.45;
   margin-bottom: 8px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -412,22 +398,22 @@ body {
 }
 
 .service-price {
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 800;
   color: var(--primary-purple);
   margin-bottom: 12px;
 }
 
-/* Nút Xem chi tiết tím */
-.btn-detail {
+/* NÚT ĐẶT LỊCH SPA */
+.btn-book-spa {
   margin-top: auto;
   width: 100%;
-  padding: 7px;
-  background: #ffffff;
+  padding: 9px;
+  background: var(--primary-purple);
   border: 1px solid var(--primary-purple);
-  color: var(--primary-purple);
+  color: #ffffff;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -435,16 +421,16 @@ body {
   justify-content: center;
   gap: 6px;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
 }
 
-.btn-detail:hover {
-  background: var(--primary-purple);
-  color: #ffffff;
+.btn-book-spa:hover {
+  background: var(--primary-purple-dark);
+  border-color: var(--primary-purple-dark);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);
 }
 
-/* ==========================================
-   3. CTA BANNER
-   ========================================== */
+/* CTA BANNER */
 .cta-banner {
   background: #f7f5ff;
   border: 1px solid #ede7fe;
@@ -454,6 +440,8 @@ body {
   align-items: center;
   justify-content: space-between;
   box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .cta-left {
@@ -473,16 +461,6 @@ body {
   font-size: 22px;
   color: var(--primary-purple);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.cta-text h3 {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.cta-text p {
-  font-size: 12.5px;
-  color: var(--text-muted);
 }
 
 .cta-actions {
@@ -518,36 +496,252 @@ body {
   background: var(--primary-purple-dark);
 }
 
-/* RESPONSIVE */
+/* MODAL SIDEBAR SPA */
+.bk-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 9999;
+}
+
+.bk-modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.bk-modal-card {
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  background: #ffffff;
+  box-shadow: -3px 0 15px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+}
+
+.bk-modal-overlay.active .bk-modal-card {
+  transform: translateX(0);
+}
+
+.modal-header {
+  background: var(--bk-gradient);
+  padding: 18px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffffff !important;
+}
+
+.close-modal-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.8) !important;
+  cursor: pointer;
+}
+
+.close-modal-btn:hover {
+  color: #ffffff !important;
+}
+
+.modal-form-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-field-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.modal-label {
+  font-size: 13px;
+  font-weight: bold;
+  color: #4a3e39;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.modal-label i {
+  color: var(--primary-purple);
+}
+
+.cstm-user-static-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: #fdf4ff;
+  border: 1px solid #fae8ff;
+  border-radius: 6px;
+}
+
+.user-avatar-initial {
+  width: 36px;
+  height: 36px;
+  background: var(--bk-gradient);
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.user-info-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.user-code {
+  color: #6b7280;
+  font-size: 11px;
+}
+
+.selected-service-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #fdf4ff;
+  border: 1px solid #f5d0fe;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.service-display-name {
+  font-weight: bold;
+  color: #1e293b;
+}
+
+.service-display-price {
+  font-weight: 800;
+  color: var(--primary-purple);
+}
+
+.modal-input,
+.modal-select,
+.modal-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  background: #fafaf9;
+  border-radius: 6px;
+  color: #1a1a1a;
+  font-size: 13px;
+  outline: none;
+}
+
+.modal-input:focus,
+.modal-select:focus,
+.modal-textarea:focus {
+  border-color: var(--primary-purple);
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1);
+}
+
+.modal-textarea {
+  resize: none;
+}
+
+.dynamic-booking-section {
+  margin: 4px 0;
+  padding: 12px;
+  background: #fffdfc;
+  border-radius: 8px;
+  border: 1px dashed #e9d5ff;
+}
+
+.modal-actions {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  gap: 10px;
+}
+
+.modal-btn-secondary {
+  padding: 10px 18px;
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.modal-btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.modal-btn-primary {
+  flex: 1;
+  padding: 10px;
+  background: var(--bk-gradient);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(139, 92, 246, 0.2);
+}
+
+.modal-btn-primary:hover {
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);
+}
+
+#pet-toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 @media (max-width: 992px) {
   .main-layout {
     flex-direction: column;
   }
   .sidebar-info {
     width: 100%;
-  }
-  .services-scroll-area {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .banner-content {
-    padding: 24px 20px;
-  }
-  .services-scroll-area {
-    grid-template-columns: 1fr;
-  }
-  .cta-banner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-  .cta-actions {
-    width: 100%;
-  }
-  .btn {
-    flex: 1;
-    justify-content: center;
+    flex: none;
   }
 }

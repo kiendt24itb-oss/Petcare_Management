@@ -13,19 +13,16 @@
   </head>
   <body>
     <div class="container">
-      <!-- 1. HERO BANNER SECTION (FULL BACKGROUND IMAGE WITH GRADIENT OVERLAY) -->
+      <!-- 1. HERO BANNER SECTION -->
       <div class="hero-banner">
-        <!-- Background image -->
         <img
           src="https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?auto=format&fit=crop&w=1400&q=80"
           alt="Pet Health Care"
           class="hero-bg-img"
         />
 
-        <!-- Soft gradient overlay -->
         <div class="hero-gradient-overlay"></div>
 
-        <!-- Content overlay -->
         <div class="banner-content">
           <div class="health-icon-badge">
             <i class="fa-solid fa-user-doctor"></i>
@@ -66,7 +63,6 @@
               cưng lên hàng đầu.
             </p>
 
-            <!-- 4 NỘI DUNG GỘM CHUNG TRONG 1 KHUNG MÀU TÔN XANH Y TẾ -->
             <div class="features-list-wrapper">
               <div class="feature-item">
                 <div class="f-icon">
@@ -135,7 +131,7 @@
           </div>
         </aside>
 
-        <!-- RIGHT COLUMN: SERVICES LIST (SCROLLABLE ME - CON) -->
+        <!-- RIGHT COLUMN: SERVICES LIST -->
         <section class="services-section">
           <div class="services-container-card">
             <div class="services-header">
@@ -151,9 +147,9 @@
               </div>
             </div>
 
-            <!-- Inner Scrollable Container for Health Services -->
+            <!-- Khung cuộn độc lập -->
             <div class="services-scroll-area" id="servicesGrid">
-              <!-- JS renders health services dynamically -->
+              <!-- JS Render động từ API -->
             </div>
           </div>
         </section>
@@ -174,14 +170,154 @@
           <button class="btn btn-secondary">
             <i class="fa-regular fa-comment-dots"></i> Tư vấn ngay
           </button>
-          <button class="btn btn-primary btn-booking">
-            <i class="fa-regular fa-calendar-plus"></i> Đặt lịch ngay
+          <button class="btn btn-primary btn-booking-general">
+            <i class="fa-regular fa-calendar-plus"></i> Đặt lịch khám ngay
             <i class="fa-solid fa-chevron-right"></i>
           </button>
         </div>
       </div>
     </div>
 
+    <!-- MODAL ĐẶT LỊCH HEALTH (SIDE-PANEL) -->
+    <div class="bk-modal-overlay" id="healthBookingModal">
+      <div class="bk-modal-card">
+        <div class="modal-header">
+          <h3>
+            <i class="fa-solid fa-user-doctor"></i> ✨ Đặt Lịch Khám Pet Health
+          </h3>
+          <button
+            type="button"
+            class="close-modal-btn"
+            id="closeHealthModalBtn"
+          >
+            &times;
+          </button>
+        </div>
+
+        <form id="formHealthBooking" class="modal-form-content">
+          <input type="hidden" id="selectedServiceId" value="" />
+
+          <!-- Tài khoản khách -->
+          <div class="modal-field-group">
+            <label class="modal-label">
+              <i class="fa-regular fa-user"></i> Tài khoản đặt lịch
+            </label>
+            <div class="cstm-user-static-badge">
+              <div class="user-avatar-initial" id="modalUserAvatar">K</div>
+              <div class="user-info-text">
+                <div class="user-name" id="modalUserName">
+                  Khách hàng PetCare
+                </div>
+                <div class="user-code" id="modalUserCode">Mã KH: CUST-001</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gói dịch vụ đã chọn -->
+          <div class="modal-field-group">
+            <label class="modal-label">
+              <i class="fa-solid fa-notes-medical"></i> Dịch vụ y tế đã chọn
+            </label>
+            <div class="selected-service-badge" id="selectedServiceDisplay">
+              <span class="service-display-name">Khám tổng quát</span>
+              <span class="service-display-price">200.000đ</span>
+            </div>
+          </div>
+
+          <!-- Ngày & giờ khám -->
+          <div class="modal-field-row">
+            <div class="modal-field-group">
+              <label class="modal-label">
+                <i class="fa-regular fa-calendar-days"></i> Ngày hẹn khám
+              </label>
+              <input
+                type="date"
+                id="bookingDate"
+                class="modal-input"
+                required
+              />
+            </div>
+
+            <div class="modal-field-group">
+              <label class="modal-label">
+                <i class="fa-regular fa-clock"></i> Giờ khám dự kiến
+              </label>
+              <input
+                type="time"
+                id="bookingTime"
+                class="modal-input"
+                value="09:00"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Chọn Thú cưng -->
+          <div class="dynamic-booking-section">
+            <div class="dynamic-header">
+              <label class="modal-label">
+                <i class="fa-solid fa-paw"></i> Thú cưng đăng ký khám
+              </label>
+            </div>
+            <select
+              class="modal-select cstm-pet-select"
+              id="healthPetSelect"
+              required
+            >
+              <option value="">-- Đang nạp danh sách bé --</option>
+            </select>
+          </div>
+
+          <!-- Phương thức thanh toán -->
+          <div class="modal-field-group">
+            <label class="modal-label">
+              <i class="fa-solid fa-credit-card"></i> Phương thức thanh toán
+            </label>
+            <select id="paymentMethod" class="modal-select" required>
+              <option value="CASH" selected>
+                💵 Tiền mặt (Thanh toán tại phòng khám)
+              </option>
+              <option value="TRANSFER">
+                💳 Chuyển khoản ngân hàng / QR Code
+              </option>
+            </select>
+          </div>
+
+          <!-- Ghi chú -->
+          <div class="modal-field-group">
+            <label class="modal-label">
+              <i class="fa-regular fa-comment-dots"></i> Triệu chứng & Ghi chú
+            </label>
+            <textarea
+              id="bookingNote"
+              placeholder="Mô tả sơ qua biểu hiện sức khỏe bất thường của bé (nếu có)..."
+              class="modal-textarea"
+              rows="3"
+            ></textarea>
+          </div>
+
+          <!-- Actions -->
+          <div class="modal-actions">
+            <button
+              type="button"
+              id="btnHealthReset"
+              class="modal-btn-secondary"
+            >
+              Hủy bỏ
+            </button>
+            <button
+              type="submit"
+              id="btnHealthSubmit"
+              class="modal-btn-primary"
+            >
+              Xác nhận Đặt Lịch Khám
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="pet-toast-container"></div>
     <script src="HealthService.js"></script>
   </body>
 </html>

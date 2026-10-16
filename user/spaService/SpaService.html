@@ -15,17 +15,14 @@
     <div class="container">
       <!-- 1. HERO BANNER SECTION -->
       <div class="hero-banner">
-        <!-- Background image -->
         <img
           src="https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&w=1400&q=80"
           alt="Pet Spa Care"
           class="hero-bg-img"
         />
 
-        <!-- Soft gradient overlay -->
         <div class="hero-gradient-overlay"></div>
 
-        <!-- Content overlay -->
         <div class="banner-content">
           <div class="spa-icon-badge">
             <i class="fa-solid fa-sparkles"></i>
@@ -71,7 +68,6 @@
               ngoài và sức khỏe làn da, bộ lông của bé.
             </p>
 
-            <!-- 4 NỘI DUNG GỘM TRONG 1 KHUNG NỀN TÍM NHẸ -->
             <div class="features-list-wrapper">
               <div class="feature-item">
                 <div class="f-icon">
@@ -157,9 +153,9 @@
               </div>
             </div>
 
-            <!-- Inner Scrollable Container -->
+            <!-- Khung cuộn độc lập -->
             <div class="services-scroll-area" id="spaServicesGrid">
-              <!-- Dynamic JS Rendering -->
+              <!-- Render từ JS -->
             </div>
           </div>
         </section>
@@ -183,14 +179,143 @@
           <button class="btn btn-secondary">
             <i class="fa-regular fa-comment-dots"></i> Tư vấn ngay
           </button>
-          <button class="btn btn-primary btn-booking">
-            <i class="fa-regular fa-calendar-plus"></i> Đặt lịch ngay
+          <button class="btn btn-primary btn-booking-general">
+            <i class="fa-regular fa-calendar-plus"></i> Đặt lịch Spa ngay
             <i class="fa-solid fa-chevron-right"></i>
           </button>
         </div>
       </div>
     </div>
 
+    <!-- MODAL ĐẶT LỊCH SPA (SIDE-PANEL) -->
+    <div class="bk-modal-overlay" id="spaBookingModal">
+      <div class="bk-modal-card">
+        <div class="modal-header">
+          <h3>
+            <i class="fa-solid fa-sparkles"></i> ✨ Đặt Lịch Làm Đẹp Pet Spa
+          </h3>
+          <button type="button" class="close-modal-btn" id="closeSpaModalBtn">
+            &times;
+          </button>
+        </div>
+
+        <form id="formSpaBooking" class="modal-form-content">
+          <input type="hidden" id="selectedServiceId" value="" />
+
+          <!-- Tài khoản khách -->
+          <div class="modal-field-group">
+            <label class="modal-label">
+              <i class="fa-regular fa-user"></i> Tài khoản đặt lịch
+            </label>
+            <div class="cstm-user-static-badge">
+              <div class="user-avatar-initial" id="modalUserAvatar">K</div>
+              <div class="user-info-text">
+                <div class="user-name" id="modalUserName">
+                  Khách hàng PetCare
+                </div>
+                <div class="user-code" id="modalUserCode">Mã KH: CUST-001</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gói Spa chọn -->
+          <div class="modal-field-group">
+            <label class="modal-label">
+              <i class="fa-solid fa-scissors"></i> Gói dịch vụ Spa đã chọn
+            </label>
+            <div class="selected-service-badge" id="selectedServiceDisplay">
+              <span class="service-display-name">Tắm thư giãn</span>
+              <span class="service-display-price">200.000đ</span>
+            </div>
+          </div>
+
+          <!-- Ngày giờ hẹn -->
+          <div class="modal-field-row">
+            <div class="modal-field-group">
+              <label class="modal-label">
+                <i class="fa-regular fa-calendar-days"></i> Ngày hẹn Spa
+              </label>
+              <input
+                type="date"
+                id="bookingDate"
+                class="modal-input"
+                required
+              />
+            </div>
+
+            <div class="modal-field-group">
+              <label class="modal-label">
+                <i class="fa-regular fa-clock"></i> Giờ hẹn dự kiến
+              </label>
+              <input
+                type="time"
+                id="bookingTime"
+                class="modal-input"
+                value="10:00"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Chọn Thú cưng -->
+          <div class="dynamic-booking-section">
+            <div class="dynamic-header">
+              <label class="modal-label">
+                <i class="fa-solid fa-paw"></i> Thú cưng đi Spa
+              </label>
+            </div>
+            <select
+              class="modal-select cstm-pet-select"
+              id="spaPetSelect"
+              required
+            >
+              <option value="">-- Đang nạp danh sách bé --</option>
+            </select>
+          </div>
+
+          <!-- Thanh toán -->
+          <div class="modal-field-group">
+            <label class="modal-label">
+              <i class="fa-solid fa-credit-card"></i> Phương thức thanh toán
+            </label>
+            <select id="paymentMethod" class="modal-select" required>
+              <option value="CASH" selected>
+                💵 Tiền mặt (Thanh toán tại quầy Spa)
+              </option>
+              <option value="TRANSFER">
+                💳 Chuyển khoản ngân hàng / QR Code
+              </option>
+            </select>
+          </div>
+
+          <!-- Ghi chú -->
+          <div class="modal-field-group">
+            <label class="modal-label">
+              <i class="fa-regular fa-comment-dots"></i> Yêu cầu tạo kiểu / Ghi
+              chú
+            </label>
+            <textarea
+              id="bookingNote"
+              placeholder="Ví dụ: Cắt tỉa lông kiểu Teddy bear, sấy lông kỹ..."
+              class="modal-textarea"
+              rows="3"
+            ></textarea>
+          </div>
+
+          <!-- Actions -->
+          <div class="modal-actions">
+            <button type="button" id="btnSpaReset" class="modal-btn-secondary">
+              Hủy bỏ
+            </button>
+            <button type="submit" id="btnSpaSubmit" class="modal-btn-primary">
+              Xác nhận Đặt Lịch Spa
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="pet-toast-container"></div>
     <script src="SpaService.js"></script>
   </body>
 </html>
